@@ -1,0 +1,19 @@
+# ninja log v5
+18	436	7326007886499805	CMakeFiles/untitled.dir/Position.cpp.obj	cdf9a6d583682126
+2	412	7326007886258508	CMakeFiles/untitled.dir/main.cpp.obj	b270800c330b0401
+4	311	7325050573757826	build.ninja	7ec8ba1b1a0479b1
+271	333	7326009603494079	untitled.exe	4a9c1ff3e54fa6da
+20	410	7326007886227210	CMakeFiles/untitled.dir/Helper.cpp.obj	3214578dcfa0f452
+2	271	7326009602894251	CMakeFiles/untitled.dir/MoveGenerator.cpp.obj	d76933a2c3d88f15
+6	295	7326011215717655	CMakeFiles/untitled.dir/MoveGenerator.cpp.obj	d76933a2c3d88f15
+2	312	7326011215877785	CMakeFiles/untitled.dir/main.cpp.obj	b270800c330b0401
+2	395	7326029823606033	CMakeFiles/untitled.dir/main.cpp.obj	b270800c330b0401
+5	395	7326029823616032	CMakeFiles/untitled.dir/MoveGenerator.cpp.obj	d76933a2c3d88f15
+2	258	7326030198108660	CMakeFiles/untitled.dir/main.cpp.obj	b270800c330b0401
+2	258	7326036091928571	CMakeFiles/untitled.dir/MoveGenerator.cpp.obj	d76933a2c3d88f15
+258	329	7326036092595303	untitled.exe	4a9c1ff3e54fa6da
+1	312	7326036407937778	CMakeFiles/untitled.dir/Position.cpp.obj	cdf9a6d583682126
+312	374	7326036408544801	untitled.exe	4a9c1ff3e54fa6da
+2	255	7326036872942395	CMakeFiles/untitled.dir/MoveGenerator.cpp.obj	d76933a2c3d88f15
+2	270	7326037557337061	CMakeFiles/untitled.dir/Helper.cpp.obj	3214578dcfa0f452
+271	332	7326037557922474	untitled.exe	4a9c1ff3e54fa6da
