@@ -18,11 +18,18 @@ int main() {
     pos->movePiece(index,2,4);
 
     pos->draw();
-    pos->debugDrawOccupancy();
+    pos->debugDraw("occupancy");
+//    pos->debugDraw("white");
+//    pos->debugDraw("black");
 
-    Position* generatedMoves;
+    Bitboard * generatedMoves;
     MoveGenerator* moveGen = new MoveGenerator();
     generatedMoves = moveGen->generateMoves(pos);
+
+    for (int i = 0; i < 3; ++i) {
+        std::cout << "================" << std::endl ;
+        pos->drawBitboard(generatedMoves[i]);//move this method to helper;
+    }
 
     return 0;
 }

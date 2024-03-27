@@ -13,7 +13,22 @@ namespace Engine {
 
     class MoveGenerator {
     public:
-        Position* generateMoves(Position* position);
+        MoveGenerator();
+        Bitboard * generateMoves(Position* position);
+
+    private:
+        Bitboard generateSlidingMoves(Bitboard piece, Bitboard blockers, Bitboard directionMask);
+        Bitboard generateDirectionMask(int direction, Bitboard piece);
+        Bitboard floodFill(int direction, Bitboard piece, Bitboard blockers);
+
+        // sliding piece move generation lookup tables for each direction, indexed as [direction(N->W)][square][blocker arrangement]
+
+        Bitboard rayOcclusionLookup[8][64][64];
+
+        Bitboard  rayMaskLookup[8][64];
+
+
+
     };
 
 } // Engine

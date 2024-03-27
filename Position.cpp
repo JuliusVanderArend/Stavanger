@@ -45,6 +45,12 @@ namespace Engine {
     void Position::addPiece(Piece piece, int x, int y) {
         Bitboard newPiece; //mem leak?
         this->occupancy.set(y*8 + x);
+        if(piece > 0){
+            whiteOccupancy.set(y*8 + x);
+        }
+        else{
+            blackOccupancy.set(y*8 + x);
+        }
         newPiece.set(y*8 + x);
         this->pieces[this->numPieces] = newPiece;
         this->pieceNames[this->numPieces] = piece;
@@ -54,6 +60,14 @@ namespace Engine {
     void Position::movePiece(int index, int x, int y) {
         this->occupancy.set(y*8 + x);
         this->occupancy.reset(this->pieces[index]._Find_first());
+        if(this->pieceNames[index] > 0){
+            whiteOccupancy.set(y*8 + x);
+            this->whiteOccupancy.reset(this->pieces[index]._Find_first());
+        }
+        else{
+            blackOccupancy.set(y*8 + x);
+            this->blackOccupancy.reset(this->pieces[index]._Find_first());
+        }
         this->pieces[index].reset();
         this->pieces[index].set(y*8 + x);
     }
@@ -86,12 +100,24 @@ namespace Engine {
         }
     }
 
-    void Position::debugDrawOccupancy(){
-        for (int i = 7; i >=0; --i) {
+    void Position::drawBitboard(Bitboard bitboard) {
+        for (int i = 7; i >= 0; --i) {
             for (int j = 0; j < 8; ++j) {
-                std::cout << " " + std::to_string(this->occupancy.test(j+i*8)) + " ";//?
+                std::cout << " " + std::to_string(bitboard.test(j + i * 8)) + " ";//?
             }
             std::cout << std::endl;
+        }
+    }
+
+    void Position::debugDraw(std::string mode){
+        if(mode == "occupancy") {
+            drawBitboard(this->occupancy);
+        }
+        if(mode == "white") {
+            drawBitboard(this->whiteOccupancy);
+        }
+        if(mode == "black") {
+            drawBitboard(this->blackOccupancy);
         }
     }
 
@@ -118,10 +144,10 @@ namespace Engine {
                         std::cout << " R ";  // Rook
                         break;
                     case 5:
-                        std::cout << " Q ";  // King
+                        std::cout << " Q ";  // Queen
                         break;
                     case 6:
-                        std::cout << " K ";  // Queen
+                        std::cout << " K ";  // King
                         break;
                     case -1:
                         std::cout << " p ";  // Pawn (black)
@@ -136,10 +162,10 @@ namespace Engine {
                         std::cout << " r ";  // Rook (black)
                         break;
                     case -5:
-                        std::cout << " q ";  // King (black)
+                        std::cout << " q ";  // Queen (black)
                         break;
                     case -6:
-                        std::cout << " k ";  // Queen (black)
+                        std::cout << " k ";  // King (black)
                         break;
                     default:
                         std::cerr << "Unknown piece on the board!";

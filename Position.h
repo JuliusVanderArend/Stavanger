@@ -26,10 +26,13 @@ namespace Engine {
 
         Bitboard* pieces;
         Bitboard occupancy;
+        Bitboard whiteOccupancy;
+        Bitboard blackOccupancy;
         Piece* pieceNames;
 
         void draw();
-        void debugDrawOccupancy();
+        void debugDraw(std::string mode);
+        void drawBitboard(Bitboard bitboard);
         void toArray(int**& boardOut);
 
         void addPiece(Piece piece, int x, int y);

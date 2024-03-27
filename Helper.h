@@ -8,7 +8,6 @@
 #define UNTITLED_HELPER_H
 
 #include <iostream>
-#include "Position.h"
 
 
 namespace Engine {
