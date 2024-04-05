@@ -10,7 +10,7 @@ namespace Engine {
         pieceNames = new Piece[64];
 
 //        addPiece(Piece::WHITE_ROOK, 0, 0);
-        addPiece(Piece::WHITE_KNIGHT, 1, 0);
+//        addPiece(Piece::WHITE_KNIGHT, 1, 0);
 //        addPiece(Piece::WHITE_BISHOP, 2, 0);
 //        addPiece(Piece::WHITE_QUEEN, 3, 0);
 //        addPiece(Piece::WHITE_KING, 4, 0);
@@ -36,9 +36,19 @@ namespace Engine {
 //        addPiece(Piece::BLACK_ROOK, 7, 7);
 
         //testing
-        addPiece(Piece::WHITE_ROOK, 2, 2);
-        addPiece(Piece::WHITE_BISHOP, 4, 2);
-        addPiece(Piece::WHITE_QUEEN, 6, 2);
+//        addPiece(Piece::WHITE_ROOK, 2, 2);
+//        addPiece(Piece::WHITE_BISHOP, 4, 2);
+//        addPiece(Piece::WHITE_QUEEN, 6, 2);
+
+        addPiece(Piece::WHITE_PAWN, 3, 3);
+        addPiece(Piece::WHITE_PAWN, 3, 4);
+        addPiece(Piece::WHITE_PAWN, 3, 5);
+        addPiece(Piece::WHITE_PAWN, 4, 3);
+        addPiece(Piece::WHITE_PAWN, 4, 4);
+        addPiece(Piece::WHITE_PAWN, 4, 5);
+        addPiece(Piece::WHITE_PAWN, 5, 3);
+        addPiece(Piece::WHITE_PAWN, 5, 4);
+        addPiece(Piece::WHITE_PAWN, 5, 5);
 
     }
 

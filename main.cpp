@@ -15,7 +15,7 @@ int main() {
     Position* pos = new Position();
 
     int index = pos->getPieceIndex(Piece::WHITE_ROOK,2,2);
-    pos->movePiece(index,2,4);
+//    pos->movePiece(index,2,4);
 
     pos->draw();
     pos->debugDraw("occupancy");
@@ -26,10 +26,10 @@ int main() {
     MoveGenerator* moveGen = new MoveGenerator();
     generatedMoves = moveGen->generateMoves(pos);
 
-    for (int i = 0; i < 3; ++i) {
-        std::cout << "================" << std::endl ;
-        pos->drawBitboard(generatedMoves[i]);//move this method to helper;
-    }
+//    for (int i = 0; i < 64; ++i) {
+//        std::cout << "================" << std::endl ;
+//        pos->drawBitboard(generatedMoves[i]);//move this method to helper;
+//    }
 
     return 0;
 }

@@ -8,6 +8,7 @@
 #define UNTITLED_HELPER_H
 
 #include <iostream>
+#include <cstdint>
 
 
 namespace Engine {
@@ -26,6 +27,9 @@ namespace Engine {
         BLACK_ROOK = -4
     };
     bool isSliding(Piece piece);
+    template<std::size_t N>
+    std::string toCoordinates(int index);
+    void printMove(uint32_t move);
 } // Helper
 
 #endif //UNTITLED_HELPER_H
