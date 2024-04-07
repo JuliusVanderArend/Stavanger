@@ -5,6 +5,7 @@
 #include <iostream>
 #include "Position.h"
 #include "MoveGenerator.h"
+#include "Helper.h"
 
 using namespace Engine;
 
@@ -13,12 +14,10 @@ int main() {
     std::cout << "Hello, World!" << std::endl;
 
     Position* pos = new Position();
-
-    int index = pos->getPieceIndex(Piece::WHITE_ROOK,2,2);
-//    pos->movePiece(index,2,4);
+    pos->whiteToMove = false;
 
     pos->draw();
-    pos->debugDraw("occupancy");
+//    pos->debugDraw("occupancy");
 //    pos->debugDraw("white");
 //    pos->debugDraw("black");
 
@@ -26,10 +25,10 @@ int main() {
     MoveGenerator* moveGen = new MoveGenerator();
     generatedMoves = moveGen->generateMoves(pos);
 
-//    for (int i = 0; i < 64; ++i) {
-//        std::cout << "================" << std::endl ;
-//        pos->drawBitboard(generatedMoves[i]);//move this method to helper;
-//    }
+    std::cout << generatedMoves.size() << std::endl;
+    for(Move move : generatedMoves){
+        printMove(move);
+    }
 
     return 0;
 }

@@ -22,56 +22,85 @@ namespace Engine {
     std::vector<Move> MoveGenerator::generateMoves(Position* position){
         std::vector<Move> generatedMoves; //218 maximum moves from any given position
         generatedMoves.reserve(218);
+//
+//        for (int i = 0; i < 64; i+=1) {
+//            Bitboard lut = rookMagicAttacks[i][(position->occupancy & rookMagicMasks[i]).to_ullong() * rookMagics[i].magic
+//                    >> (64 - rookMagics[i].indexSize)]; //shouldnt be ullong???
+//            Bitboard gened = floodfillRookAttacks(i, position->occupancy);
+//            for (int j = 0; j < rookMagicMovesets[i][(position->occupancy & rookMagicMasks[i]).to_ullong() * rookMagics[i].magic
+//                    >> (64 - rookMagics[i].indexSize)].size(); ++j) {
+//                printMove(rookMagicMovesets[i][(position->occupancy & rookMagicMasks[i]).to_ullong() * rookMagics[i].magic
+//                        >> (64 - rookMagics[i].indexSize)][j]);
+//            }
+//            std::cout << std::to_string((position->occupancy & rookMagicMasks[i]).to_ullong() * rookMagics[i].magic
+//                                                >> (64 - rookMagics[i].indexSize)) <<std::endl;
+//            std::cout << i <<std::endl;
+//            if (lut != gened ) {
+//                std::cout << "................." << std::endl;
+//                position->drawBitboard(position->occupancy & rookMagicMasks[i]);
+//                std::cout << "================" << std::endl;
+//                position->drawBitboard(lut);
+//                std::cout << "================" << std::endl;
+//                position->drawBitboard(gened);
+//                std::cout << "ERROR" << std::endl;
+//            }
+//        }
 
-        for (int i = 0; i < 64; i+=1) {
-            Bitboard lut = rookMagicAttacks[i][(position->occupancy & rookMagicMasks[i]).to_ullong() * rookMagics[i].magic
-                    >> (64 - rookMagics[i].indexSize)]; //shouldnt be ullong???
-            Bitboard gened = floodfillRookAttacks(i, position->occupancy);
-            for (int j = 0; j < rookMagicMovesets[i][(position->occupancy & rookMagicMasks[i]).to_ullong() * rookMagics[i].magic
-                    >> (64 - rookMagics[i].indexSize)].size(); ++j) {
-                printMove(rookMagicMovesets[i][(position->occupancy & rookMagicMasks[i]).to_ullong() * rookMagics[i].magic
-                        >> (64 - rookMagics[i].indexSize)][j]);
+//        for (int i = 0; i < 64; i+=1) {
+//            Bitboard lut = bishopMagicAttacks[i][(position->occupancy & bishopMagicMasks[i]).to_ullong() * bishopMagics[i].magic
+//                    >> (64 - bishopMagics[i].indexSize)]; //shouldnt be ullong???
+//            Bitboard gened = floodfillBishopAttacks(i, position->occupancy);
+//            if (lut != gened) {
+//                std::cout << "................." << std::endl;
+//                position->drawBitboard(position->occupancy & bishopMagicMasks[i]);
+//                std::cout << "================" << std::endl;
+//                position->drawBitboard(lut);
+//                std::cout << "================" << std::endl;
+//                position->drawBitboard(gened);
+//                std::cout << "ERROR" << std::endl;
+//            }
+//        }
+
+
+
+        for (int i = 0; i < position->numPieces; ++i) {
+            if((position->pieceNames[i] == Piece::WHITE_PAWN && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_PAWN && !position->whiteToMove)) {
+                generatePawnMoves(generatedMoves,position,position->pieces[i]._Find_first());//maybe store square index of each peice in position so find first is not needed?
             }
-            std::cout << i <<std::endl;
-            if (lut != gened ) {
-                std::cout << "................." << std::endl;
-                position->drawBitboard(position->occupancy & rookMagicMasks[i]);
-                std::cout << "================" << std::endl;
-                position->drawBitboard(lut);
-                std::cout << "================" << std::endl;
-                position->drawBitboard(gened);
-                std::cout << "ERROR" << std::endl;
+            else if((position->pieceNames[i] == Piece::WHITE_KNIGHT && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_KNIGHT && !position->whiteToMove)){
+                generateKnightMoves(generatedMoves,position,position->pieces[i]._Find_first());
+            }
+            else if((position->pieceNames[i] == Piece::WHITE_BISHOP && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_BISHOP && !position->whiteToMove)){
+                generateBishopMoves(generatedMoves,position,position->pieces[i]._Find_first());
+            }
+            else if((position->pieceNames[i] == Piece::WHITE_ROOK && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_ROOK && !position->whiteToMove)){
+                generateRookMoves(generatedMoves,position,position->pieces[i]._Find_first());
+            }
+            else if((position->pieceNames[i] == Piece::WHITE_QUEEN && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_KING && !position->whiteToMove)){
+                generateQueenMoves(generatedMoves,position,position->pieces[i]._Find_first());
+            }
+            else if((position->pieceNames[i] == Piece::WHITE_KING && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_KING && !position->whiteToMove)){
+                generateKingMoves(generatedMoves,position,position->pieces[i]._Find_first());
             }
         }
 
-        for (int i = 0; i < 64; i+=1) {
-            Bitboard lut = bishopMagicAttacks[i][(position->occupancy & bishopMagicMasks[i]).to_ullong() * bishopMagics[i].magic
-                    >> (64 - bishopMagics[i].indexSize)]; //shouldnt be ullong???
-            Bitboard gened = floodfillBishopAttacks(i, position->occupancy);
-            if (lut != gened) {
-                std::cout << "................." << std::endl;
-                position->drawBitboard(position->occupancy & bishopMagicMasks[i]);
-                std::cout << "================" << std::endl;
-                position->drawBitboard(lut);
-                std::cout << "================" << std::endl;
-                position->drawBitboard(gened);
-                std::cout << "ERROR" << std::endl;
-            }
-        }
+
         return generatedMoves;
     }
 
     void MoveGenerator::generateRookMoves(std::vector<Move>& moves,Position* position,int squareIndex){
-        std::vector<Move> rookMoves = rookMagicMovesets[squareIndex][(position->occupancy & rookMagicMasks[squareIndex]).to_ullong() * rookMagics[squareIndex].magic
-                >> (64 - rookMagics[squareIndex].indexSize)];
+        std::vector<Move> rookMoves = rookMagicMovesets[squareIndex][(position->occupancy & rookMagicMasks[squareIndex]).to_ullong() * rookMagics[squareIndex].magic >> (64 - rookMagics[squareIndex].indexSize)];
 
         Bitboard friendlyOccupancy = position->whiteToMove? position->whiteOccupancy : position->blackOccupancy;
 
         for (int i = 0; i < rookMoves.size(); ++i) { // maybe try performance with std::vector.insert later
-            if(rookMoves[i] & (1 <<31)){ // if is capture, check for own captures
-                if(!(friendlyOccupancy.to_ullong() & (rookMoves[i]&0x3f))){//if no self capture
+            if(rookMoves[i] & (1 <<14)){ // if is capture, check for own captures
+                if((friendlyOccupancy & (std::bitset<64>(1) <<(rookMoves[i]&0x3f))).none()){//if no self capture
                     moves.emplace_back(rookMoves[i]);
                 }
+            }
+            else{
+                moves.emplace_back(rookMoves[i]);
             }
         }
     }
@@ -83,10 +112,13 @@ namespace Engine {
         Bitboard friendlyOccupancy = position->whiteToMove? position->whiteOccupancy : position->blackOccupancy;
 
         for (int i = 0; i < bishopMoves.size(); ++i) { // maybe try performance with std::vector.insert later
-            if(bishopMoves[i] & (1 <<31)){ // if is capture, check for own captures
-                if(!(friendlyOccupancy.to_ullong() & (bishopMoves[i]&0x3f))){//if no self capture
+            if(bishopMoves[i] & (1 <<14)){ // if is capture, check for own captures
+                if((friendlyOccupancy & (std::bitset<64>(1) <<(bishopMoves[i]&0x3f))).none()){//if no self capture
                     moves.emplace_back(bishopMoves[i]);
                 }
+            }
+            else{
+                moves.emplace_back(bishopMoves[i]);
             }
         }
     }
@@ -103,10 +135,10 @@ namespace Engine {
                                                        {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}};
         Bitboard friendlyOccupancy = position->whiteToMove? position->whiteOccupancy : position->blackOccupancy;
         for (const auto& dir : directions) {
-            int newRank = x + dir.first;
-            int newFile = y + dir.second;
-            if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) {
-                int newSquareIndex = newRank * 8 + newFile;
+            int newX = x + dir.first;
+            int newY = y + dir.second;
+            if (newX >= 0 && newX < 8 && newY >= 0 && newY < 8) {
+                int newSquareIndex = newY * 8 + newX;
                 if((position->occupancy & (std::bitset<64>(1) << (newSquareIndex))).none()) { // no capture
                     moves.emplace_back(newSquareIndex | (squareIndex <<6));
                 }
@@ -117,7 +149,7 @@ namespace Engine {
         }
     }
 
-    void MoveGenerator::generateKingMoves(std::vector<Move>& moves,Position* position,int squareIndex){
+    void MoveGenerator::generateKingMoves(std::vector<Move>& moves,Position* position,int squareIndex){ // add castling generation
         int x = squareIndex % 8;
         int y = squareIndex / 8;
         std::vector<std::pair<int, int>> directions = {{0, 1}, {1, 1}, {1, 0}, {1, -1},
@@ -125,15 +157,41 @@ namespace Engine {
         Bitboard friendlyOccupancy = position->whiteToMove? position->whiteOccupancy : position->blackOccupancy;
 
         for (const auto& dir : directions) {
-            int newRank = x + dir.first;
-            int newFile = y + dir.second;
-            if (newRank >= 0 && newRank < 8 && newFile >= 0 && newFile < 8) {
-                int newSquareIndex = newRank * 8 + newFile;
+            int newX = x + dir.first;
+            int newY = y + dir.second;
+            if (newX >= 0 && newX < 8 && newY >= 0 && newY < 8) {
+                int newSquareIndex = newY * 8 + newX;
                 if((position->occupancy & (std::bitset<64>(1) << (newSquareIndex))).none()) { // no capture
                     moves.emplace_back(newSquareIndex | (squareIndex <<6));
                 }
                 else if((friendlyOccupancy & (std::bitset<64>(1) << (newSquareIndex))).none()){ // no self capture
                     moves.emplace_back(newSquareIndex | (squareIndex <<6) | (1<<14));
+                }
+            }
+        }
+
+        // castling
+        if(position->whiteToMove){
+            if(position-> whiteKingsideCastle){
+                if((position->occupancy & Bitboard(0x60)).none()){
+                    moves.emplace_back(6 | (squareIndex <<6) | (2<<12));
+                }
+            }
+            if(position-> whiteQueensideCastle){
+                if((position->occupancy & Bitboard(0xE)).none()){
+                    moves.emplace_back(2 | (squareIndex <<6) | (3<<12));
+                }
+            }
+        }
+        else{
+            if(position-> blackKingsideCastle){
+                if((position->occupancy & Bitboard(0x6000000000000000)).none()){
+                    moves.emplace_back(62 | (squareIndex <<6) | (2<<12));
+                }
+            }
+            if(position-> blackQueensideCastle){
+                if((position->occupancy & Bitboard(0xE00000000000000)).none()){
+                    moves.emplace_back(58 | (squareIndex <<6) | (3<<12));
                 }
             }
         }
@@ -143,15 +201,22 @@ namespace Engine {
         int upOne = position->whiteToMove? 8:-8;
         int upTwo = 2*upOne;
 
+
+
         if((position->occupancy & (std::bitset<64>(1) << (squareIndex+upOne))).none()){//square ahead is empty
-            moves.emplace_back((squareIndex+upOne) | (squareIndex <<6));
-            if((position->occupancy & (std::bitset<64>(1) << (squareIndex+upTwo))).none()){// two squares ahead is also empty
-                int triggerEP = 0;
-                if((position->whiteToMove && squareIndex >7 && squareIndex <16) || (!position->whiteToMove && squareIndex >47 && squareIndex <56)){
-                    // is a double pawn push off the starting rank
-                    triggerEP = 1;
+            if( !((position->whiteToMove && squareIndex+upOne > 55) || (!position->whiteToMove && squareIndex+upOne <8))){
+                moves.emplace_back((squareIndex+upOne) | (squareIndex <<6)); //not a promotion
+            }else{//promotion
+                moves.emplace_back((squareIndex+upOne) | (squareIndex <<6) | (8 << 12));// knight promotion
+                moves.emplace_back((squareIndex+upOne) | (squareIndex <<6) | (9 << 12));// bishop promotion
+                moves.emplace_back((squareIndex+upOne) | (squareIndex <<6) | (10 << 12));// rook promotion
+                moves.emplace_back((squareIndex+upOne) | (squareIndex <<6) | (11 << 12));// queen promotion
+            }
+
+            if((position->whiteToMove && squareIndex >7 && squareIndex <16) || (!position->whiteToMove && squareIndex >47 && squareIndex <56)){ //double pawn push off starting rank
+                if((position->occupancy & (std::bitset<64>(1) << (squareIndex+upTwo))).none()){
+                    moves.emplace_back((squareIndex+upTwo) | (squareIndex <<6) | (1 << 12));
                 }
-                moves.emplace_back((squareIndex+upTwo) | (squareIndex <<6) | (triggerEP << 12));
             }
         }
 
@@ -165,7 +230,15 @@ namespace Engine {
             if(squareIndex+leftAttack == position->enPassantTarget){
                 code +=1;//also ep capture
             }
-            moves.emplace_back((squareIndex+leftAttack) | (squareIndex <<6) | (code << 14));
+
+            if( !((position->whiteToMove && squareIndex+upOne > 55) || (!position->whiteToMove && squareIndex+upOne <8))){
+                moves.emplace_back((squareIndex+leftAttack) | (squareIndex <<6) | (code << 12)); //not a promotion
+            }else{//promotion
+                moves.emplace_back((squareIndex+leftAttack) | (squareIndex <<6) | (12 << 12));// knight promotion
+                moves.emplace_back((squareIndex+leftAttack) | (squareIndex <<6) | (13 << 12));// bishop promotion
+                moves.emplace_back((squareIndex+leftAttack) | (squareIndex <<6) | (14 << 12));// rook promotion
+                moves.emplace_back((squareIndex+leftAttack) | (squareIndex <<6) | (15 << 12));// queen promotion
+            }
         }
         //right attack
         if(squareIndex%8 <7 && ((enemyOccupancy | (std::bitset<64>(1) << (position->enPassantTarget)))&(std::bitset<64>(1) << (squareIndex+rightAttack))).any()){
@@ -173,7 +246,14 @@ namespace Engine {
             if(squareIndex+rightAttack == position->enPassantTarget){
                 code +=1;//also ep capture
             }
-            moves.emplace_back((squareIndex+rightAttack) | (squareIndex <<6) | (code << 14));
+            if( !((position->whiteToMove && squareIndex+upOne > 55) || (!position->whiteToMove && squareIndex+upOne <8))){
+                moves.emplace_back((squareIndex+rightAttack) | (squareIndex <<6) | (code << 12)); //not a promotion
+            }else{//promotion
+                moves.emplace_back((squareIndex+rightAttack) | (squareIndex <<6) | (12 << 12));// knight promotion
+                moves.emplace_back((squareIndex+rightAttack) | (squareIndex <<6) | (13 << 12));// bishop promotion
+                moves.emplace_back((squareIndex+rightAttack) | (squareIndex <<6) | (14 << 12));// rook promotion
+                moves.emplace_back((squareIndex+rightAttack) | (squareIndex <<6) | (15 << 12));// queen promotion
+            }
         }
     }
 
@@ -361,7 +441,7 @@ namespace Engine {
         if(initialY !=7){
             mask &= 0x00FFFFFFFFFFFFFF;
         }
-//        mask.reset(initialX+initialY*8); ??? how should own square occupancy be considered?
+        mask.reset(squareIndex); //??? how should own square occupancy be considered?
         return mask;
     }
 
@@ -376,7 +456,7 @@ namespace Engine {
         int initialY =y;
 
         directionToXYStep(direction,stepX,stepY);
-
+//        blockers.reset(initialX + initialY*8); //??? IS THIS RIGHT?
         while(x >= 0 && x < 8 && y >=0 && y < 8){
             mask.set(x +y*8);
             if(blockers.test(x+y*8)){

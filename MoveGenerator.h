@@ -23,7 +23,7 @@ namespace Engine {
         std::vector<Move> generateMoves(Position* position);
 
     private:
-        static const int MAX_MAGIC_BITS = 17;
+        static const int MAX_MAGIC_BITS = 18;
 
         static Bitboard generateMagicMaskRay(int direction, int squareIndex);
         static Bitboard generateRookMagicMask(int squareIndex);

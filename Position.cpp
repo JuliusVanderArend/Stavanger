@@ -6,49 +6,47 @@
 
 namespace Engine {
     Position::Position() {
-        pieces = new Bitboard[64];
-        pieceNames = new Piece[64];
-
-//        addPiece(Piece::WHITE_ROOK, 0, 0);
-//        addPiece(Piece::WHITE_KNIGHT, 1, 0);
-//        addPiece(Piece::WHITE_BISHOP, 2, 0);
-//        addPiece(Piece::WHITE_QUEEN, 3, 0);
-//        addPiece(Piece::WHITE_KING, 4, 0);
-//        addPiece(Piece::WHITE_BISHOP, 5, 0);
-//        addPiece(Piece::WHITE_KNIGHT, 6, 0);
-//        addPiece(Piece::WHITE_ROOK, 7, 0);
+        // starting position
+        addPiece(Piece::WHITE_ROOK, 0, 0);
+        addPiece(Piece::WHITE_KNIGHT, 1, 0);
+        addPiece(Piece::WHITE_BISHOP, 2, 0);
+        addPiece(Piece::WHITE_QUEEN, 3, 0);
+        addPiece(Piece::WHITE_KING, 4, 0);
+        addPiece(Piece::WHITE_BISHOP, 5, 0);
+        addPiece(Piece::WHITE_KNIGHT, 6, 0);
+        addPiece(Piece::WHITE_ROOK, 7, 0);
 
 //        for (int i = 0; i < 8; ++i) {
 //            addPiece(Piece::WHITE_PAWN, i, 1);
 //        }
-//
-//        for (int i = 0; i < 8; ++i) {
-//            addPiece(Piece::BLACK_PAWN, i, 6);
-//        }
 
-//        addPiece(Piece::BLACK_ROOK, 0, 7);
-//        addPiece(Piece::BLACK_KNIGHT, 1, 7);
-//        addPiece(Piece::BLACK_BISHOP, 2, 7);
-//        addPiece(Piece::BLACK_QUEEN, 3, 7);
-//        addPiece(Piece::BLACK_KING, 4, 7);
-//        addPiece(Piece::BLACK_BISHOP, 5, 7);
-//        addPiece(Piece::BLACK_KNIGHT, 6, 7);
-//        addPiece(Piece::BLACK_ROOK, 7, 7);
+        for (int i = 0; i < 8; ++i) {
+            addPiece(Piece::BLACK_PAWN, i, 6);
+        }
+
+        addPiece(Piece::BLACK_ROOK, 0, 7);
+        addPiece(Piece::BLACK_KNIGHT, 1, 7);
+        addPiece(Piece::BLACK_BISHOP, 2, 7);
+        addPiece(Piece::BLACK_QUEEN, 3, 7);
+        addPiece(Piece::BLACK_KING, 4, 7);
+        addPiece(Piece::BLACK_BISHOP, 5, 7);
+        addPiece(Piece::BLACK_KNIGHT, 6, 7);
+        addPiece(Piece::BLACK_ROOK, 7, 7);
 
         //testing
 //        addPiece(Piece::WHITE_ROOK, 2, 2);
 //        addPiece(Piece::WHITE_BISHOP, 4, 2);
 //        addPiece(Piece::WHITE_QUEEN, 6, 2);
 
-        addPiece(Piece::WHITE_PAWN, 3, 3);
-        addPiece(Piece::WHITE_PAWN, 3, 4);
-        addPiece(Piece::WHITE_PAWN, 3, 5);
-        addPiece(Piece::WHITE_PAWN, 4, 3);
-        addPiece(Piece::WHITE_PAWN, 4, 4);
-        addPiece(Piece::WHITE_PAWN, 4, 5);
-        addPiece(Piece::WHITE_PAWN, 5, 3);
-        addPiece(Piece::WHITE_PAWN, 5, 4);
-        addPiece(Piece::WHITE_PAWN, 5, 5);
+//        addPiece(Piece::WHITE_PAWN, 3, 3);
+//        addPiece(Piece::WHITE_PAWN, 3, 4);
+//        addPiece(Piece::WHITE_PAWN, 3, 5);
+//        addPiece(Piece::WHITE_PAWN, 4, 3);
+//        addPiece(Piece::WHITE_PAWN, 4, 4);
+//        addPiece(Piece::WHITE_PAWN, 4, 5);
+//        addPiece(Piece::WHITE_PAWN, 5, 3);
+//        addPiece(Piece::WHITE_PAWN, 5, 4);
+//        addPiece(Piece::WHITE_PAWN, 5, 5);
 
     }
 
