@@ -23,7 +23,7 @@ namespace Engine {
         return std::string(1, file) + std::string(1, rank);
     }
 
-    void printMove(uint32_t move){
+    void printMove(Move move){
 //        static std::map<Piece, std::string> pieceNames = {
 //                {Piece::WHITE_KING, "White King"},
 //                {Piece::WHITE_QUEEN, "White Queen"},
@@ -41,8 +41,11 @@ namespace Engine {
         if(move ==0){
             std::cout <<"null move"<< std::endl;
         }
-        else {
-            std::cout << "move from " + toCoordinates(move & 0x3f) + " to " + toCoordinates((move >> 6) & 0x3f)<< std::endl;
+        else if(move & (1 <<14)) {
+            std::cout << "capture from " + toCoordinates((move >> 6) & 0x3f) + " to " + toCoordinates(move & 0x3f)<< std::endl;
+        }
+        else{
+            std::cout << "move from " + toCoordinates((move >> 6) & 0x3f) + " to " + toCoordinates(move & 0x3f)<< std::endl;
         }
 //        for (int i = 32 - 1; i >= 0; --i) {
 //            // Check if the i-th bit is set
@@ -54,8 +57,7 @@ namespace Engine {
 //
 //            // Add spacing for better readability
 //        }
-//        std::cout << std::endl;
-
+        std::cout << std::endl;
     }
 
 } // Helper

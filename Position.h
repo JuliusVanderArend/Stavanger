@@ -7,10 +7,8 @@
 #define UNTITLED_POSITION_H
 
 #include <cstdint>
-#include <bitset>
 #include "Helper.h"
 
-typedef std::bitset<64> Bitboard;
 
 
 namespace Engine {
@@ -19,8 +17,12 @@ namespace Engine {
     public:
         Position();
 
-        bool whiteCanCastle = true;
-        bool blackCanCastle = true;
+        bool whiteKingsideCaste = true;
+        bool whiteQueenideCaste = true;
+        bool blackKingsidCastle = true;
+        bool blackQueenideCaste = true;
+
+        int enPassantTarget = 0;
         bool whiteToMove = true;
         int numPieces = 0;
 

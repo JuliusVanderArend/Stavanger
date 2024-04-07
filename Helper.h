@@ -9,7 +9,11 @@
 
 #include <iostream>
 #include <cstdint>
+#include <bitset>
 
+typedef std::bitset<64> Bitboard;
+//typedef std::bitset<32> Move;
+typedef  uint32_t Move;
 
 namespace Engine {
     enum Piece {

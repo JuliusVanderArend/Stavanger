@@ -22,7 +22,7 @@ int main() {
 //    pos->debugDraw("white");
 //    pos->debugDraw("black");
 
-    Bitboard * generatedMoves;
+    std::vector<Move> generatedMoves;
     MoveGenerator* moveGen = new MoveGenerator();
     generatedMoves = moveGen->generateMoves(pos);
 
