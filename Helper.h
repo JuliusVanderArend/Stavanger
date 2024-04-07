@@ -13,7 +13,7 @@
 
 typedef std::bitset<64> Bitboard;
 //typedef std::bitset<32> Move;
-typedef  uint32_t Move;
+typedef  uint32_t Move; //faster than uint16??? WHY??!
 
 namespace Engine {
     enum Piece {

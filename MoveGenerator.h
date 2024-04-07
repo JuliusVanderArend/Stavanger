@@ -15,6 +15,8 @@ namespace Engine {
     struct magicEntry{
         int indexSize;
         uint64_t magic;
+
+//        magicEntry(int s, uint64_t magic) : indexSize(s), magic(magic) {}
     };
 
     class MoveGenerator {
@@ -23,7 +25,7 @@ namespace Engine {
         std::vector<Move> generateMoves(Position* position);
 
     private:
-        static const int MAX_MAGIC_BITS = 18;
+        static const int MAX_MAGIC_BITS = 16;
 
         static Bitboard generateMagicMaskRay(int direction, int squareIndex);
         static Bitboard generateRookMagicMask(int squareIndex);

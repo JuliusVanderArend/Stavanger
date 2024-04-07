@@ -22,46 +22,6 @@ namespace Engine {
     std::vector<Move> MoveGenerator::generateMoves(Position* position){
         std::vector<Move> generatedMoves; //218 maximum moves from any given position
         generatedMoves.reserve(218);
-//
-//        for (int i = 0; i < 64; i+=1) {
-//            Bitboard lut = rookMagicAttacks[i][(position->occupancy & rookMagicMasks[i]).to_ullong() * rookMagics[i].magic
-//                    >> (64 - rookMagics[i].indexSize)]; //shouldnt be ullong???
-//            Bitboard gened = floodfillRookAttacks(i, position->occupancy);
-//            for (int j = 0; j < rookMagicMovesets[i][(position->occupancy & rookMagicMasks[i]).to_ullong() * rookMagics[i].magic
-//                    >> (64 - rookMagics[i].indexSize)].size(); ++j) {
-//                printMove(rookMagicMovesets[i][(position->occupancy & rookMagicMasks[i]).to_ullong() * rookMagics[i].magic
-//                        >> (64 - rookMagics[i].indexSize)][j]);
-//            }
-//            std::cout << std::to_string((position->occupancy & rookMagicMasks[i]).to_ullong() * rookMagics[i].magic
-//                                                >> (64 - rookMagics[i].indexSize)) <<std::endl;
-//            std::cout << i <<std::endl;
-//            if (lut != gened ) {
-//                std::cout << "................." << std::endl;
-//                position->drawBitboard(position->occupancy & rookMagicMasks[i]);
-//                std::cout << "================" << std::endl;
-//                position->drawBitboard(lut);
-//                std::cout << "================" << std::endl;
-//                position->drawBitboard(gened);
-//                std::cout << "ERROR" << std::endl;
-//            }
-//        }
-
-//        for (int i = 0; i < 64; i+=1) {
-//            Bitboard lut = bishopMagicAttacks[i][(position->occupancy & bishopMagicMasks[i]).to_ullong() * bishopMagics[i].magic
-//                    >> (64 - bishopMagics[i].indexSize)]; //shouldnt be ullong???
-//            Bitboard gened = floodfillBishopAttacks(i, position->occupancy);
-//            if (lut != gened) {
-//                std::cout << "................." << std::endl;
-//                position->drawBitboard(position->occupancy & bishopMagicMasks[i]);
-//                std::cout << "================" << std::endl;
-//                position->drawBitboard(lut);
-//                std::cout << "================" << std::endl;
-//                position->drawBitboard(gened);
-//                std::cout << "ERROR" << std::endl;
-//            }
-//        }
-
-
 
         for (int i = 0; i < position->numPieces; ++i) {
             if((position->pieceNames[i] == Piece::WHITE_PAWN && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_PAWN && !position->whiteToMove)) {
@@ -89,7 +49,7 @@ namespace Engine {
     }
 
     void MoveGenerator::generateRookMoves(std::vector<Move>& moves,Position* position,int squareIndex){
-        std::vector<Move> rookMoves = rookMagicMovesets[squareIndex][(position->occupancy & rookMagicMasks[squareIndex]).to_ullong() * rookMagics[squareIndex].magic >> (64 - rookMagics[squareIndex].indexSize)];
+        std::vector<Move>& rookMoves = rookMagicMovesets[squareIndex][(position->occupancy & rookMagicMasks[squareIndex]).to_ullong() * rookMagics[squareIndex].magic >> (64 - rookMagics[squareIndex].indexSize)];
 
         Bitboard friendlyOccupancy = position->whiteToMove? position->whiteOccupancy : position->blackOccupancy;
 
@@ -106,7 +66,7 @@ namespace Engine {
     }
 
     void MoveGenerator::generateBishopMoves(std::vector<Move>& moves,Position* position,int squareIndex){//slow??
-        std::vector<Move> bishopMoves = bishopMagicMovesets[squareIndex][(position->occupancy & bishopMagicMasks[squareIndex]).to_ullong() * bishopMagics[squareIndex].magic
+        std::vector<Move>& bishopMoves = bishopMagicMovesets[squareIndex][(position->occupancy & bishopMagicMasks[squareIndex]).to_ullong() * bishopMagics[squareIndex].magic
                 >> (64 - bishopMagics[squareIndex].indexSize)];
 
         Bitboard friendlyOccupancy = position->whiteToMove? position->whiteOccupancy : position->blackOccupancy;
@@ -131,8 +91,9 @@ namespace Engine {
     void MoveGenerator::generateKnightMoves(std::vector<Move>& moves,Position* position,int squareIndex){
         int x = squareIndex % 8;
         int y = squareIndex / 8;
-        std::vector<std::pair<int, int>> directions = {{1, 2}, {2, 1}, {2, -1}, {1, -2},
-                                                       {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}};
+        static constexpr std::array<std::pair<int, int>, 8> directions = {
+                {{1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}}
+        };
         Bitboard friendlyOccupancy = position->whiteToMove? position->whiteOccupancy : position->blackOccupancy;
         for (const auto& dir : directions) {
             int newX = x + dir.first;
@@ -152,8 +113,9 @@ namespace Engine {
     void MoveGenerator::generateKingMoves(std::vector<Move>& moves,Position* position,int squareIndex){ // add castling generation
         int x = squareIndex % 8;
         int y = squareIndex / 8;
-        std::vector<std::pair<int, int>> directions = {{0, 1}, {1, 1}, {1, 0}, {1, -1},
-                                                       {0, -1}, {-1, -1}, {-1, 0}, {-1, 1}};
+        static constexpr std::array<std::pair<int, int>, 8> directions = {
+                {{0, 1}, {1, 1}, {1, 0}, {1, -1},{0, -1}, {-1, -1}, {-1, 0}, {-1, 1}}
+        };
         Bitboard friendlyOccupancy = position->whiteToMove? position->whiteOccupancy : position->blackOccupancy;
 
         for (const auto& dir : directions) {

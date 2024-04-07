@@ -15,7 +15,7 @@ int main() {
     std::cout << "Hello, World!" << std::endl;
 
     Position* pos = new Position();
-    pos->whiteToMove = true;
+//    pos->whiteToMove = false;
 
     pos->draw();
 //    pos->debugDraw("occupancy");
@@ -26,11 +26,9 @@ int main() {
     MoveGenerator* moveGen = new MoveGenerator();
 
     auto start = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < 1000000; ++i) {
+    for (int i = 0; i < 100000000; ++i) {
         moveGen->generateMoves(pos);
     }
-
-    // Stop the timer
     auto end = std::chrono::high_resolution_clock::now();
 
     // Calculate the duration
