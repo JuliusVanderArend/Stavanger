@@ -10,6 +10,18 @@ namespace Engine {
         return 3 <= abs(piece) &&  abs(piece)<= 5;
     }
 
+    inline void set(uint64_t& bitboard, uint8_t index) {
+        bitboard |= (1ULL << index);
+    }
+
+    inline void clear(uint64_t& bitboard, uint8_t index) {
+        bitboard &= ~(1ULL << index);
+    }
+
+    inline void move(uint64_t& bitboard, uint8_t from, uint8_t to) {
+        bitboard ^= (1ULL << from | 1ULL << to);
+    }
+
 
     std::string toCoordinates(int index) {
         int row = (index / 8); // Calculate row (rank) from index

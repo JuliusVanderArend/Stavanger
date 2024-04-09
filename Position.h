@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <array>
+#include <vector>
 #include "Helper.h"
 
 
@@ -25,13 +26,18 @@ namespace Engine {
 
         int enPassantTarget = 0;
         bool whiteToMove = true;
-        int numPieces = 0;
+        int numPieces = 0; //get rid of this at some point
 
-        std::array<Bitboard,64> pieces;
+        std::array<Bitboard,12> pieceOccupancy;
+        std::array<Piece,64> pieceNames;
         Bitboard occupancy;
         Bitboard whiteOccupancy;
         Bitboard blackOccupancy;
-        std::array<Piece,64> pieceNames;
+        Bitboard& friendlyOccupancy = whiteOccupancy;
+        Bitboard& enemyOccupancy = blackOccupancy;
+
+
+
 
         void draw();
         void debugDraw(std::string mode);
@@ -39,8 +45,12 @@ namespace Engine {
         void toArray(int**& boardOut);
 
         void addPiece(Piece piece, int x, int y);
-        void movePiece(int index, int x, int y);
+        void capturePiece(Piece piece, int square);
+        void movePiece(int from, int to);
+
         int getPieceIndex(Piece piece, int x, int y); //try to avoid or optimise this as currently looping over all pieces
+        bool makeMove(Move move);
+        bool squareIsAttacked(int square);
 
     private:
 

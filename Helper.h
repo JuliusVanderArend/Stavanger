@@ -11,7 +11,7 @@
 #include <cstdint>
 #include <bitset>
 
-typedef std::bitset<64> Bitboard;
+typedef uint64_t Bitboard;
 //typedef std::bitset<32> Move;
 typedef  uint32_t Move; //faster than uint16??? WHY??!
 
@@ -28,12 +28,17 @@ namespace Engine {
         BLACK_PAWN = -1,
         BLACK_BISHOP = -3,
         BLACK_KNIGHT = -2,
-        BLACK_ROOK = -4
+        BLACK_ROOK = -4,
+        NONE = 0
     };
     bool isSliding(Piece piece);
     template<std::size_t N>
     std::string toCoordinates(int index);
     void printMove(uint32_t move);
+    inline uint64_t set(uint64_t& bitboard, uint8_t index);
+    inline uint64_t clear(uint64_t& bitboard, uint8_t index);
+    inline uint64_t move(uint64_t& bitboard, uint8_t from,uint8_t to);
+
 } // Helper
 
 #endif //UNTITLED_HELPER_H

@@ -6,6 +6,7 @@
 
 namespace Engine {
     Position::Position() {
+        std::fill(pieceNames.begin(), pieceNames.end(), Piece::NONE);
         // starting position
 //        addPiece(Piece::WHITE_ROOK, 0, 0);
 //        addPiece(Piece::WHITE_KNIGHT, 1, 0);
@@ -53,44 +54,71 @@ namespace Engine {
 
     }
 
+    bool Position::makeMove(Move move){
+        uint8_t from = (move & 0xFC0) >> 6;
+        uint8_t to = move & 0x3F;
+        uint8_t code = (move & 0xF000) >> 12;
+
+        enPassantTarget = 0; //how do deal with reseting eptarget when unmaking moves?
+        movePiece(from,to); //does all the bitboard manipulation need to happen as well? could be put off for better perf?
+
+        switch (code) {
+            case 1: //is double pawn push so set en passant target square
+                enPassantTarget = to + (whiteToMove? -8:8);
+                break;
+            case 2: //Kingside castle
+
+                break;
+
+            case 3: //Queenside castle
+
+        }
+        return true;
+    }
+
+    bool Position::squareIsAttacked(int square){ //maybe make return index of attacking piece?
+        if(whiteToMove){
+
+        }else{
+
+        }
+    }
+
     void Position::addPiece(Piece piece, int x, int y) {
-        Bitboard newPiece; //mem leak?
-        this->occupancy.set(y*8 + x);
+        set(occupancy,y*8 + x);
         if(piece > 0){
-            whiteOccupancy.set(y*8 + x);
+            set(whiteOccupancy,y*8 + x);
         }
         else{
-            blackOccupancy.set(y*8 + x);
+            set(blackOccupancy,y*8 + x);
         }
-        newPiece.set(y*8 + x);
-        this->pieces[this->numPieces] = newPiece;
-        this->pieceNames[this->numPieces] = piece;
-        this->numPieces++;
+        pieceNames[x+y*8] = piece;
+        set(pieceOccupancy[piece+6],x+y*8);
     }
 
-    void Position::movePiece(int index, int x, int y) {
-        this->occupancy.set(y*8 + x);
-        this->occupancy.reset(this->pieces[index]._Find_first());
-        if(this->pieceNames[index] > 0){
-            whiteOccupancy.set(y*8 + x);
-            this->whiteOccupancy.reset(this->pieces[index]._Find_first());
-        }
-        else{
-            blackOccupancy.set(y*8 + x);
-            this->blackOccupancy.reset(this->pieces[index]._Find_first());
-        }
-        this->pieces[index].reset();
-        this->pieces[index].set(y*8 + x);
+    void Position::capturePiece(Piece piece, int square) {
+        clear(occupancy,square);//maybe consider getting rid of total occupancy if its not used much
+        clear(enemyOccupancy,square);
+        clear(pieceOccupancy[piece+6],square);
+        pieceNames[square] = Piece::NONE;//maybe I don't have to do this?
     }
 
-    int Position::getPieceIndex(Engine::Piece piece, int x, int y) {
-        for (int i = 0; i < this->numPieces; ++i) {
-            if(this->pieces[i]._Find_first() == x+y*8 && this->pieceNames[i] == piece){
-                return i;
-            }
-        }
-        return -1;
+    void Position::movePiece(int from, int to) {
+        move(occupancy,from,to);
+        move(friendlyOccupancy,from,to);
+        move(pieceOccupancy[pieceNames[from]+6],from,to);
+        pieceNames[to] = pieceNames[from];//maybe I don't have to do this?
+        pieceNames[from] = Piece::NONE;
     }
+
+//    int Position::getPieceIndex(Engine::Piece piece, int x, int y) {
+//        for (int i = 0; i < numPieces; ++i) {
+//            if(pieces[i]._Find_first() == x+y*8 && pieceNames[i] == piece){
+//                return i;
+//            }
+//        }
+//        return -1;
+//    }
 
     void Position::toArray(int**& boardOut){//converts bitboard representation of a chess board to array representation. (is position:: needed?)
 
@@ -103,11 +131,11 @@ namespace Engine {
             }
         }
 
-        for (int i = 0; i < this->numPieces; ++i) {
-            Bitboard piece = this->pieces[i];
+        for (int i = 0; i < numPieces; ++i) {
+            Bitboard piece = pieces[i];
             int x = piece._Find_first() % 8;
             int y = piece._Find_first() / 8;
-            boardOut[x][y] = this->pieceNames[i];
+            boardOut[x][y] = pieceNames[i];
         }
     }
 
@@ -122,13 +150,13 @@ namespace Engine {
 
     void Position::debugDraw(std::string mode){
         if(mode == "occupancy") {
-            drawBitboard(this->occupancy);
+            drawBitboard(occupancy);
         }
         if(mode == "white") {
-            drawBitboard(this->whiteOccupancy);
+            drawBitboard(whiteOccupancy);
         }
         if(mode == "black") {
-            drawBitboard(this->blackOccupancy);
+            drawBitboard(blackOccupancy);
         }
     }
 
