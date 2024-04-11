@@ -48,7 +48,7 @@ namespace Engine {
         void generateQueenMoves(std::vector<Move>& moves,Position* position,int squareIndex);
         void generateKnightMoves(std::vector<Move>& moves,Position* position,int squareIndex);
         void generateKingMoves(std::vector<Move>& moves,Position* position,int squareIndex);
-        void generatePawnMoves(std::vector<Move>& moves,Position* position,int squareIndex);
+        void generatePawnMoves(std::vector<Move>& moves,Position* position,Bitboard pawns);
 
         std::array<magicEntry,64> rookMagics;
         std::array<magicEntry,64> bishopMagics;

@@ -22,27 +22,31 @@ namespace Engine {
     std::vector<Move> MoveGenerator::generateMoves(Position* position){
         std::vector<Move> generatedMoves; //218 maximum moves from any given position
         generatedMoves.reserve(218);
+//        for (int i = 0; i < position->numPieces; ++i) {
+//            if((position->pieceNames[i] == Piece::WHITE_PAWN && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_PAWN && !position->whiteToMove)) {
+//                generatePawnMoves(generatedMoves,position,position->pieces[i]._Find_first());//maybe store square index of each peice in position so find first is not needed?
+//            }
+//            else if((position->pieceNames[i] == Piece::WHITE_KNIGHT && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_KNIGHT && !position->whiteToMove)){
+//                generateKnightMoves(generatedMoves,position,position->pieces[i]._Find_first());
+//            }
+//            else if((position->pieceNames[i] == Piece::WHITE_BISHOP && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_BISHOP && !position->whiteToMove)){
+//                generateBishopMoves(generatedMoves,position,position->pieces[i]._Find_first());
+//            }
+//            else if((position->pieceNames[i] == Piece::WHITE_ROOK && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_ROOK && !position->whiteToMove)){
+//                generateRookMoves(generatedMoves,position,position->pieces[i]._Find_first());
+//            }
+//            else if((position->pieceNames[i] == Piece::WHITE_QUEEN && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_KING && !position->whiteToMove)){
+//                generateQueenMoves(generatedMoves,position,position->pieces[i]._Find_first());
+//            }
+//            else if((position->pieceNames[i] == Piece::WHITE_KING && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_KING && !position->whiteToMove)){
+//                generateKingMoves(generatedMoves,position,position->pieces[i]._Find_first());
+//            }
+//        }
+        int toMove = position->whiteToMove? 1:-1;
+        generateKingMoves(generatedMoves,position,__builtin_ffsll(position->pieceOccupancy[6*toMove]));
+        generatePawnMoves(generatedMoves,position,__builtin_ffsll(position->pieceOccupancy[1*toMove]));
 
-        for (int i = 0; i < position->numPieces; ++i) {
-            if((position->pieceNames[i] == Piece::WHITE_PAWN && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_PAWN && !position->whiteToMove)) {
-                generatePawnMoves(generatedMoves,position,position->pieces[i]._Find_first());//maybe store square index of each peice in position so find first is not needed?
-            }
-            else if((position->pieceNames[i] == Piece::WHITE_KNIGHT && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_KNIGHT && !position->whiteToMove)){
-                generateKnightMoves(generatedMoves,position,position->pieces[i]._Find_first());
-            }
-            else if((position->pieceNames[i] == Piece::WHITE_BISHOP && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_BISHOP && !position->whiteToMove)){
-                generateBishopMoves(generatedMoves,position,position->pieces[i]._Find_first());
-            }
-            else if((position->pieceNames[i] == Piece::WHITE_ROOK && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_ROOK && !position->whiteToMove)){
-                generateRookMoves(generatedMoves,position,position->pieces[i]._Find_first());
-            }
-            else if((position->pieceNames[i] == Piece::WHITE_QUEEN && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_KING && !position->whiteToMove)){
-                generateQueenMoves(generatedMoves,position,position->pieces[i]._Find_first());
-            }
-            else if((position->pieceNames[i] == Piece::WHITE_KING && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_KING && !position->whiteToMove)){
-                generateKingMoves(generatedMoves,position,position->pieces[i]._Find_first());
-            }
-        }
+        while(position->pieceOccupancy[offset+1])
 
 
         return generatedMoves;
@@ -159,64 +163,32 @@ namespace Engine {
         }
     }
 
-    void MoveGenerator::generatePawnMoves(std::vector<Move>& moves,Position* position,int squareIndex){ // Need to do promotions
+    void MoveGenerator::generatePawnMoves(std::vector<Move>& moves,Position* position,Bitboard pawns){ // Need to do promotions
         int upOne = position->whiteToMove? 8:-8;
-        int upTwo = 2*upOne;
+        Bitboard doublePushTargetRank = position->whiteToMove? 0x00000000FF000000 : 0x000000FF00000000;
 
+        Bitboard promotableRank = position->whiteToMove? 0x00FF000000000000 : 0x0000000000FF00;
+        Bitboard promotablePawns = pawns & promotableRank;
+        Bitboard unpromotablePawns = pawns & ~promotableRank;
 
-
-        if((position->occupancy & (std::bitset<64>(1) << (squareIndex+upOne))).none()){//square ahead is empty
-            if( !((position->whiteToMove && squareIndex+upOne > 55) || (!position->whiteToMove && squareIndex+upOne <8))){
-                moves.emplace_back((squareIndex+upOne) | (squareIndex <<6)); //not a promotion
-            }else{//promotion
-                moves.emplace_back((squareIndex+upOne) | (squareIndex <<6) | (8 << 12));// knight promotion
-                moves.emplace_back((squareIndex+upOne) | (squareIndex <<6) | (9 << 12));// bishop promotion
-                moves.emplace_back((squareIndex+upOne) | (squareIndex <<6) | (10 << 12));// rook promotion
-                moves.emplace_back((squareIndex+upOne) | (squareIndex <<6) | (11 << 12));// queen promotion
-            }
-
-            if((position->whiteToMove && squareIndex >7 && squareIndex <16) || (!position->whiteToMove && squareIndex >47 && squareIndex <56)){ //double pawn push off starting rank
-                if((position->occupancy & (std::bitset<64>(1) << (squareIndex+upTwo))).none()){
-                    moves.emplace_back((squareIndex+upTwo) | (squareIndex <<6) | (1 << 12));
-                }
-            }
+        Bitboard singlePushTargets = unpromotablePawns << upOne &(~position->occupancy);
+        Bitboard doublePushTargets = singlePushTargets << upOne & (~position->occupancy) & doublePushTargetRank;
+        Bitboard promotionTargets = promotablePawns << upOne &(~position->occupancy);
+ v
+        while(singlePushTargets){
+            int index = __builtinFFSL(singlePushTargets);
+            moves.emplaceBack(index | (index-upOne)<<6);
+            singlePushTargets &= ~(1ULL << index);
+        }
+        while(doublePushTargets){
+            int index = __builtinFFSL(doublePushTargets);
+            moves.emplaceBack(index | (index-upOne*2)<<6| (1 << 12));
+            doublePushTargets &= ~(1ULL << index);
         }
 
-        int leftAttack = position->whiteToMove? 7:-9;
-        int rightAttack = position->whiteToMove? 9:-7;
-        Bitboard enemyOccupancy = position->whiteToMove? position->blackOccupancy : position->whiteOccupancy;
 
-        //left attack
-        if(squareIndex%8 > 0 && ((enemyOccupancy | (std::bitset<64>(1) << (position->enPassantTarget)))&(std::bitset<64>(1) << (squareIndex+leftAttack))).any()){
-            int code = 4;//only capture
-            if(squareIndex+leftAttack == position->enPassantTarget){
-                code +=1;//also ep capture
-            }
 
-            if( !((position->whiteToMove && squareIndex+upOne > 55) || (!position->whiteToMove && squareIndex+upOne <8))){
-                moves.emplace_back((squareIndex+leftAttack) | (squareIndex <<6) | (code << 12)); //not a promotion
-            }else{//promotion
-                moves.emplace_back((squareIndex+leftAttack) | (squareIndex <<6) | (12 << 12));// knight promotion
-                moves.emplace_back((squareIndex+leftAttack) | (squareIndex <<6) | (13 << 12));// bishop promotion
-                moves.emplace_back((squareIndex+leftAttack) | (squareIndex <<6) | (14 << 12));// rook promotion
-                moves.emplace_back((squareIndex+leftAttack) | (squareIndex <<6) | (15 << 12));// queen promotion
-            }
-        }
-        //right attack
-        if(squareIndex%8 <7 && ((enemyOccupancy | (std::bitset<64>(1) << (position->enPassantTarget)))&(std::bitset<64>(1) << (squareIndex+rightAttack))).any()){
-            int code = 4;//only capture
-            if(squareIndex+rightAttack == position->enPassantTarget){
-                code +=1;//also ep capture
-            }
-            if( !((position->whiteToMove && squareIndex+upOne > 55) || (!position->whiteToMove && squareIndex+upOne <8))){
-                moves.emplace_back((squareIndex+rightAttack) | (squareIndex <<6) | (code << 12)); //not a promotion
-            }else{//promotion
-                moves.emplace_back((squareIndex+rightAttack) | (squareIndex <<6) | (12 << 12));// knight promotion
-                moves.emplace_back((squareIndex+rightAttack) | (squareIndex <<6) | (13 << 12));// bishop promotion
-                moves.emplace_back((squareIndex+rightAttack) | (squareIndex <<6) | (14 << 12));// rook promotion
-                moves.emplace_back((squareIndex+rightAttack) | (squareIndex <<6) | (15 << 12));// queen promotion
-            }
-        }
+
     }
 
 

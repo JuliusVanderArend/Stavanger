@@ -62,26 +62,27 @@ namespace Engine {
         enPassantTarget = 0; //how do deal with reseting eptarget when unmaking moves?
         movePiece(from,to); //does all the bitboard manipulation need to happen as well? could be put off for better perf?
 
-        switch (code) {
-            case 1: //is double pawn push so set en passant target square
-                enPassantTarget = to + (whiteToMove? -8:8);
-                break;
-            case 2: //Kingside castle
-
-                break;
-
-            case 3: //Queenside castle
-
-        }
+//        switch (code) {
+//            case 1: //is double pawn push so set en passant target square
+//                enPassantTarget = to + (whiteToMove? -8:8);
+//                break;
+//            case 2: //Kingside castle
+//
+//                break;
+//
+//            case 3: //Queenside castle
+//
+//        }
         return true;
     }
 
     bool Position::squareIsAttacked(int square){ //maybe make return index of attacking piece?
-        if(whiteToMove){
-
-        }else{
-
-        }
+//        if(whiteToMove){
+//
+//        }else{
+//
+//        }
+        return false;
     }
 
     void Position::addPiece(Piece piece, int x, int y) {
@@ -120,29 +121,11 @@ namespace Engine {
 //        return -1;
 //    }
 
-    void Position::toArray(int**& boardOut){//converts bitboard representation of a chess board to array representation. (is position:: needed?)
-
-        boardOut = new int*[8]; // an integer representation of a chessboard to be printed 1 = pawn, 2 = knight, 3 = bishop, 4 = rook, 5 = king, 6 = queen ,positive for white pieces, negative for black;
-        for (int i = 0; i < 8; ++i) {
-            boardOut[i] = new int[8];
-            for (int j = 0; j < 8; ++j) {
-                // Initialize or assign values to the array
-                boardOut[i][j] = 0;
-            }
-        }
-
-        for (int i = 0; i < numPieces; ++i) {
-            Bitboard piece = pieces[i];
-            int x = piece._Find_first() % 8;
-            int y = piece._Find_first() / 8;
-            boardOut[x][y] = pieceNames[i];
-        }
-    }
 
     void Position::drawBitboard(Bitboard bitboard) {
         for (int i = 7; i >= 0; --i) {
             for (int j = 0; j < 8; ++j) {
-                std::cout << " " + std::to_string(bitboard.test(j + i * 8)) + " ";//?
+                std::cout << " " + std::to_string(test(bitboard,i*8+j)) + " ";//?
             }
             std::cout << std::endl;
         }
@@ -161,12 +144,9 @@ namespace Engine {
     }
 
     void Position::draw(){
-        int** board;
-        this->toArray(board);
-
         for (int i = 7; i >=0; --i) {
             for (int j = 0; j < 8; ++j) {
-                switch (board[j][i]) {
+                switch (pieceNames[i*8+j]) {
                     case 0:
                         std::cout << " . ";  // Empty square
                         break;
@@ -213,11 +193,5 @@ namespace Engine {
             }
             std::cout << std::endl;
         }
-        for (int i = 0; i < 8; ++i) {
-            delete[] board[i];
-        }
-        delete[] board;
     }
-
-
-} // Engine
+}

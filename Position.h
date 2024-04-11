@@ -28,7 +28,7 @@ namespace Engine {
         bool whiteToMove = true;
         int numPieces = 0; //get rid of this at some point
 
-        std::array<Bitboard,12> pieceOccupancy;
+        std::array<Bitboard,13> pieceOccupancy;
         std::array<Piece,64> pieceNames;
         Bitboard occupancy;
         Bitboard whiteOccupancy;

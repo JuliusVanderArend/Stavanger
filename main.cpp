@@ -25,6 +25,8 @@ int main() {
     std::vector<Move> generatedMoves;
     MoveGenerator* moveGen = new MoveGenerator();
 
+    Bitboard test;
+
     auto start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < 100000000; ++i) {
         moveGen->generateMoves(pos);

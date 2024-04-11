@@ -9,7 +9,6 @@
 
 #include <iostream>
 #include <cstdint>
-#include <bitset>
 
 typedef uint64_t Bitboard;
 //typedef std::bitset<32> Move;
@@ -35,9 +34,10 @@ namespace Engine {
     template<std::size_t N>
     std::string toCoordinates(int index);
     void printMove(uint32_t move);
-    inline uint64_t set(uint64_t& bitboard, uint8_t index);
-    inline uint64_t clear(uint64_t& bitboard, uint8_t index);
-    inline uint64_t move(uint64_t& bitboard, uint8_t from,uint8_t to);
+    inline void set(Bitboard& bitboard, uint8_t index);
+    inline void clear(Bitboard& bitboard, uint8_t index);
+    inline void move(Bitboard& bitboard, uint8_t from,uint8_t to);
+    inline bool test(Bitboard& bitboard, uint8_t square);
 
 } // Helper
 
