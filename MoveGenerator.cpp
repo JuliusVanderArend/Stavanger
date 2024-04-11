@@ -12,9 +12,10 @@ namespace Engine {
         for (int i = 0; i < 64; ++i) {
             rookMagicMasks[i] = generateRookMagicMask(i);
             bishopMagicMasks[i] = generateBishopMagicMask(i);
+            knightAttacks[i] = generateKnightAttacks(i);
         }
 
-        initalizeMagics();
+        initializeMagics();
         std::cout << "Magics Initialized" << std::endl ;
     }
 
@@ -44,7 +45,8 @@ namespace Engine {
 //        }
         int toMove = position->whiteToMove? 1:-1;
         generateKingMoves(generatedMoves,position,__builtin_ffsll(position->pieceOccupancy[6*toMove]));
-        generatePawnMoves(generatedMoves,position,__builtin_ffsll(position->pieceOccupancy[1*toMove]));
+        generatePawnMoves(generatedMoves,position,position->pieceOccupancy[1*toMove]);
+        generateKnightMoves(generatedMoves,position,position->pieceOccupancy[2*toMove]);
 
         while(position->pieceOccupancy[offset+1])
 
@@ -92,26 +94,43 @@ namespace Engine {
         generateRookMoves(moves,position,squareIndex);
     }
 
-    void MoveGenerator::generateKnightMoves(std::vector<Move>& moves,Position* position,int squareIndex){
+    void MoveGenerator::generateKnightMoves(std::vector<Move>& moves,Position* position,Bitboard knights){
+        Bitboard enemies = position->whiteToMove? position->blackOccupancy : position->whiteOccupancy;
+
+        while(knights){
+            int square = __builtin_ffsll(knights);
+            Bitboard knightTargets = knightAttacks[square];
+            Bitboard quiets = knightTargets & (~position->occupancy);
+            Bitboard captures = knightTargets & enemies;
+            while(quiets){
+                int target = __builtin_ffsll(quiets);
+                moves.emplace_back(target | (square<<6));
+                quiets &= ~(1ULL << target);
+            }
+            while(captures){
+                int target = __builtin_ffsll(captures);
+                moves.emplace_back(target | (square<<6) | (4 << 12));
+                captures &= ~(1ULL << target);
+            }
+        }
+    }
+
+    Bitboard MoveGenerator::generateKnightAttacks(int squareIndex){
         int x = squareIndex % 8;
         int y = squareIndex / 8;
+        Bitboard attacks;
         static constexpr std::array<std::pair<int, int>, 8> directions = {
                 {{1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}}
         };
-        Bitboard friendlyOccupancy = position->whiteToMove? position->whiteOccupancy : position->blackOccupancy;
         for (const auto& dir : directions) {
             int newX = x + dir.first;
             int newY = y + dir.second;
             if (newX >= 0 && newX < 8 && newY >= 0 && newY < 8) {
                 int newSquareIndex = newY * 8 + newX;
-                if((position->occupancy & (std::bitset<64>(1) << (newSquareIndex))).none()) { // no capture
-                    moves.emplace_back(newSquareIndex | (squareIndex <<6));
-                }
-                else if((friendlyOccupancy & (std::bitset<64>(1) << (newSquareIndex))).none()){ // no self capture
-                    moves.emplace_back(newSquareIndex | (squareIndex <<6) | (1<<14));
-                }
+                attacks |= 1ULL << newSquareIndex;
             }
         }
+        return attacks;
     }
 
     void MoveGenerator::generateKingMoves(std::vector<Move>& moves,Position* position,int squareIndex){ // add castling generation
@@ -164,37 +183,110 @@ namespace Engine {
     }
 
     void MoveGenerator::generatePawnMoves(std::vector<Move>& moves,Position* position,Bitboard pawns){ // Need to do promotions
-        int upOne = position->whiteToMove? 8:-8;
-        Bitboard doublePushTargetRank = position->whiteToMove? 0x00000000FF000000 : 0x000000FF00000000;
+        const Bitboard notAFile = 0xFEFEFEFEFEFEFEFE;
+        const Bitboard notHFile = 0x7F7F7F7F7F7F7F7F;
 
+
+        int upOne = position->whiteToMove? 8:-8;
+        int upLeft = position->whiteToMove? 7:-9;
+        int upRight = position->whiteToMove? 9:-7;
+
+        Bitboard doublePushTargetRank = position->whiteToMove? 0x00000000FF000000 : 0x000000FF00000000;
         Bitboard promotableRank = position->whiteToMove? 0x00FF000000000000 : 0x0000000000FF00;
+        Bitboard enemies = position->whiteToMove? position->blackOccupancy : position->whiteOccupancy;
+
         Bitboard promotablePawns = pawns & promotableRank;
         Bitboard unpromotablePawns = pawns & ~promotableRank;
 
         Bitboard singlePushTargets = unpromotablePawns << upOne &(~position->occupancy);
         Bitboard doublePushTargets = singlePushTargets << upOne & (~position->occupancy) & doublePushTargetRank;
-        Bitboard promotionTargets = promotablePawns << upOne &(~position->occupancy);
- v
-        while(singlePushTargets){
-            int index = __builtinFFSL(singlePushTargets);
-            moves.emplaceBack(index | (index-upOne)<<6);
+
+        while(singlePushTargets){ //single pawn push
+            int index = __builtin_ffsll(singlePushTargets);
+            moves.emplace_back(index | (index-upOne)<<6);
             singlePushTargets &= ~(1ULL << index);
         }
-        while(doublePushTargets){
-            int index = __builtinFFSL(doublePushTargets);
-            moves.emplaceBack(index | (index-upOne*2)<<6| (1 << 12));
+
+        while(doublePushTargets){ //double pawn push
+            int index = __builtin_ffsll(doublePushTargets);
+            moves.emplace_back(index | (index-upOne*2)<<6| (1 << 12));
             doublePushTargets &= ~(1ULL << index);
         }
 
+        if(promotablePawns){ //promotions
+            Bitboard leftAttackPromo = ((promotablePawns & notAFile) << upLeft) & enemies;
+            Bitboard rightAttackPromo = ((promotablePawns & notHFile) << upRight) & enemies;
+            Bitboard pushPromo = (promotablePawns << upOne) & (~position->occupancy);
 
+            while(leftAttackPromo){
+                int index = __builtin_ffsll(leftAttackPromo);
+                moves.emplace_back(index | (index-upLeft)<<6 |  (12 << 12));
+                moves.emplace_back(index | (index-upLeft)<<6 |  (13 << 12));
+                moves.emplace_back(index | (index-upLeft)<<6 |  (14 << 12));
+                moves.emplace_back(index | (index-upLeft)<<6 |  (15 << 12));
+                leftAttackPromo &= ~(1ULL << index);
+            }
+            while(rightAttackPromo){
+                int index = __builtin_ffsll(rightAttackPromo);
+                moves.emplace_back(index | (index-upRight)<<6 |  (12 << 12));
+                moves.emplace_back(index | (index-upRight)<<6 |  (13 << 12));
+                moves.emplace_back(index | (index-upRight)<<6 |  (14 << 12));
+                moves.emplace_back(index | (index-upRight)<<6 |  (15 << 12));
+                rightAttackPromo &= ~(1ULL << index);
+            }
+            while(pushPromo){
+                int index = __builtin_ffsll(pushPromo);
+                moves.emplace_back(index | (index-upOne)<<6 |  (8 << 12));
+                moves.emplace_back(index | (index-upOne)<<6 |  (9 << 12));
+                moves.emplace_back(index | (index-upOne)<<6 |  (10 << 12));
+                moves.emplace_back(index | (index-upOne)<<6 |  (11 << 12));
+                pushPromo &= ~(1ULL << index);
+            }
+        }
 
+        Bitboard leftAttack = ((unpromotablePawns & notAFile) << upLeft) & enemies;
+        Bitboard rightAttack = ((unpromotablePawns & notHFile) << upRight) & enemies;
 
+        while (leftAttack){
+            int index = __builtin_ffsll(leftAttack);
+            moves.emplace_back(index | (index-upLeft)<<6 | (4 << 12));
+            leftAttack &= ~(1ULL << index);
+        }
+        while (rightAttack){
+            int index = __builtin_ffsll(rightAttack);
+            moves.emplace_back(index | (index-upRight)<<6 | (4 << 12));
+            rightAttack &= ~(1ULL << index);
+        }
+
+        int leftEP = position->whiteToMove? -9:9;
+        int rightEP = position->whiteToMove? -7:7;
+
+        if(position->enPassantTarget !=0){
+            if(position->enPassantTarget % 8 == 0){
+                if((1ULL <<(position->enPassantTarget +leftEP)) & unpromotablePawns){
+                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +leftEP)<<6 | (5 << 12));
+                }
+            }
+            else if(position->enPassantTarget % 8 == 7){
+                if((1ULL <<(position->enPassantTarget +rightEP)) & unpromotablePawns){
+                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +rightEP)<<6 | (5 << 12));
+                }
+            }
+            else{
+                if((1ULL <<(position->enPassantTarget +leftEP)) & unpromotablePawns){
+                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +leftEP)<<6 | (5 << 12));
+                }
+                if((1ULL <<(position->enPassantTarget +rightEP)) & unpromotablePawns){
+                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +rightEP)<<6 | (5 << 12));
+                }
+            }
+        }
     }
 
 
 
 
-    void MoveGenerator::initalizeMagics() {
+    void MoveGenerator::initializeMagics() {
         std::random_device rd;
         std::mt19937_64 gen(rd());
 
