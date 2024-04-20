@@ -10,21 +10,6 @@ namespace Engine {
         return 3 <= abs(piece) &&  abs(piece)<= 5;
     }
 
-    inline void set(Bitboard& bitboard, uint8_t index) {
-        bitboard |= (1ULL << index);
-    }
-
-    inline void clear(Bitboard& bitboard, uint8_t index) {
-        bitboard &= ~(1ULL << index);
-    }
-
-    inline void move(Bitboard& bitboard, uint8_t from, uint8_t to) {
-        bitboard ^= (1ULL << from | 1ULL << to);
-    }
-
-    inline bool test(Bitboard& bitboard, uint8_t square) {
-        return bitboard & (1ULL << square);
-    }
 
 
     std::string toCoordinates(int index) {
@@ -37,6 +22,16 @@ namespace Engine {
 
         // Return the chess coordinate string
         return std::string(1, file) + std::string(1, rank);
+    }
+
+    void drawBitboard(Bitboard bitboard) {
+        std::cout << "=======================" <<std::endl;
+        for (int i = 7; i >= 0; --i) {
+            for (int j = 0; j < 8; ++j) {
+                std::cout << " " + std::to_string(test(bitboard,i*8+j)) + " ";//?
+            }
+            std::cout << std::endl;
+        }
     }
 
     void printMove(Move move){
@@ -75,5 +70,4 @@ namespace Engine {
 //        }
         std::cout << std::endl;
     }
-
 } // Helper

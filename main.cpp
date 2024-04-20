@@ -28,8 +28,8 @@ int main() {
     Bitboard test;
 
     auto start = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < 100000000; ++i) {
-        moveGen->generateMoves(pos);
+    for (int i = 0; i < 1; ++i) {
+       generatedMoves =  moveGen->generateMoves(pos);
     }
     auto end = std::chrono::high_resolution_clock::now();
 

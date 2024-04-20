@@ -34,11 +34,22 @@ namespace Engine {
     template<std::size_t N>
     std::string toCoordinates(int index);
     void printMove(uint32_t move);
-    inline void set(Bitboard& bitboard, uint8_t index);
-    inline void clear(Bitboard& bitboard, uint8_t index);
-    inline void move(Bitboard& bitboard, uint8_t from,uint8_t to);
-    inline bool test(Bitboard& bitboard, uint8_t square);
+    void drawBitboard(Bitboard bitboard);
+    inline void set(Bitboard& bitboard, uint8_t index) {
+        bitboard |= (1ULL << index);
+    }
 
+    inline void clear(Bitboard& bitboard, uint8_t index) {
+        bitboard &= ~(1ULL << index);
+    }
+
+    inline void move(Bitboard& bitboard, uint8_t from, uint8_t to) {
+        bitboard ^= (1ULL << from | 1ULL << to);
+    }
+
+    inline bool test(Bitboard& bitboard, uint8_t square) {
+        return bitboard & (1ULL << square);
+    }
 } // Helper
 
 #endif //UNTITLED_HELPER_H

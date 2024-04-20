@@ -13,6 +13,7 @@ namespace Engine {
             rookMagicMasks[i] = generateRookMagicMask(i);
             bishopMagicMasks[i] = generateBishopMagicMask(i);
             knightAttacks[i] = generateKnightAttacks(i);
+            kingAttacks[i] = generateKingAttacks(i);
         }
 
         initializeMagics();
@@ -23,95 +24,62 @@ namespace Engine {
     std::vector<Move> MoveGenerator::generateMoves(Position* position){
         std::vector<Move> generatedMoves; //218 maximum moves from any given position
         generatedMoves.reserve(218);
-//        for (int i = 0; i < position->numPieces; ++i) {
-//            if((position->pieceNames[i] == Piece::WHITE_PAWN && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_PAWN && !position->whiteToMove)) {
-//                generatePawnMoves(generatedMoves,position,position->pieces[i]._Find_first());//maybe store square index of each peice in position so find first is not needed?
-//            }
-//            else if((position->pieceNames[i] == Piece::WHITE_KNIGHT && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_KNIGHT && !position->whiteToMove)){
-//                generateKnightMoves(generatedMoves,position,position->pieces[i]._Find_first());
-//            }
-//            else if((position->pieceNames[i] == Piece::WHITE_BISHOP && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_BISHOP && !position->whiteToMove)){
-//                generateBishopMoves(generatedMoves,position,position->pieces[i]._Find_first());
-//            }
-//            else if((position->pieceNames[i] == Piece::WHITE_ROOK && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_ROOK && !position->whiteToMove)){
-//                generateRookMoves(generatedMoves,position,position->pieces[i]._Find_first());
-//            }
-//            else if((position->pieceNames[i] == Piece::WHITE_QUEEN && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_KING && !position->whiteToMove)){
-//                generateQueenMoves(generatedMoves,position,position->pieces[i]._Find_first());
-//            }
-//            else if((position->pieceNames[i] == Piece::WHITE_KING && position->whiteToMove) || (position->pieceNames[i] == Piece::BLACK_KING && !position->whiteToMove)){
-//                generateKingMoves(generatedMoves,position,position->pieces[i]._Find_first());
-//            }
-//        }
+
         int toMove = position->whiteToMove? 1:-1;
-        generateKingMoves(generatedMoves,position,__builtin_ffsll(position->pieceOccupancy[6*toMove]));
-        generatePawnMoves(generatedMoves,position,position->pieceOccupancy[1*toMove]);
-        generateKnightMoves(generatedMoves,position,position->pieceOccupancy[2*toMove]);
-
-        while(position->pieceOccupancy[offset+1])
-
-
+        generateKingMoves(generatedMoves,position,__builtin_ffsll(position->pieceOccupancy[6*toMove+6])-1);
+        generatePawnMoves(generatedMoves,position,position->pieceOccupancy[1*toMove+6]);//maybe can just get rid of +6??
+        generateKnightMoves(generatedMoves,position,position->pieceOccupancy[2*toMove+6]);
+        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[3*toMove+6],bishopMagicAttacks); //bishops
+        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[4*toMove+6],rookMagicAttacks); //rooks
+        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[5*toMove+6],bishopMagicAttacks); //queens
+        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[5*toMove+6],rookMagicAttacks);
         return generatedMoves;
     }
 
-    void MoveGenerator::generateRookMoves(std::vector<Move>& moves,Position* position,int squareIndex){
-        std::vector<Move>& rookMoves = rookMagicMovesets[squareIndex][(position->occupancy & rookMagicMasks[squareIndex]).to_ullong() * rookMagics[squareIndex].magic >> (64 - rookMagics[squareIndex].indexSize)];
+    void MoveGenerator::generateMagicMoves(std::vector<Move>& moves,Position* position,Bitboard pieces, std::array<std::array<Bitboard,1 << MAX_MAGIC_BITS>,64>& magicAttacks){ //refactor all LUT based pieces to use same function
 
-        Bitboard friendlyOccupancy = position->whiteToMove? position->whiteOccupancy : position->blackOccupancy;
+        Bitboard enemies = position->whiteToMove? position->blackOccupancy : position->whiteOccupancy;
 
-        for (int i = 0; i < rookMoves.size(); ++i) { // maybe try performance with std::vector.insert later
-            if(rookMoves[i] & (1 <<14)){ // if is capture, check for own captures
-                if((friendlyOccupancy & (std::bitset<64>(1) <<(rookMoves[i]&0x3f))).none()){//if no self capture
-                    moves.emplace_back(rookMoves[i]);
-                }
+        while(pieces){
+            int square = __builtin_ffsll(pieces)-1;
+            Bitboard attacks = magicAttacks[square][(position->occupancy & rookMagicMasks[square]) * rookMagics[square].magic >> (64 - rookMagics[square].indexSize)];
+            Bitboard captures = attacks & enemies;
+            Bitboard quiets = attacks & (~position->occupancy);
+            while(quiets){
+                int target = __builtin_ffsll(quiets)-1;
+                moves.emplace_back(target | (square<<6));
+                quiets &= ~(1ULL << target);
             }
-            else{
-                moves.emplace_back(rookMoves[i]);
+            while(captures){
+                int target = __builtin_ffsll(captures)-1;
+                moves.emplace_back(target | (square<<6) | (4 << 12));
+                captures &= ~(1ULL << target);
             }
+            pieces &= ~(1ULL << square);
         }
     }
 
-    void MoveGenerator::generateBishopMoves(std::vector<Move>& moves,Position* position,int squareIndex){//slow??
-        std::vector<Move>& bishopMoves = bishopMagicMovesets[squareIndex][(position->occupancy & bishopMagicMasks[squareIndex]).to_ullong() * bishopMagics[squareIndex].magic
-                >> (64 - bishopMagics[squareIndex].indexSize)];
 
-        Bitboard friendlyOccupancy = position->whiteToMove? position->whiteOccupancy : position->blackOccupancy;
-
-        for (int i = 0; i < bishopMoves.size(); ++i) { // maybe try performance with std::vector.insert later
-            if(bishopMoves[i] & (1 <<14)){ // if is capture, check for own captures
-                if((friendlyOccupancy & (std::bitset<64>(1) <<(bishopMoves[i]&0x3f))).none()){//if no self capture
-                    moves.emplace_back(bishopMoves[i]);
-                }
-            }
-            else{
-                moves.emplace_back(bishopMoves[i]);
-            }
-        }
-    }
-
-    void MoveGenerator::generateQueenMoves(std::vector<Move>& moves,Position* position,int squareIndex){//slow??
-        generateBishopMoves(moves,position,squareIndex);
-        generateRookMoves(moves,position,squareIndex);
-    }
 
     void MoveGenerator::generateKnightMoves(std::vector<Move>& moves,Position* position,Bitboard knights){
         Bitboard enemies = position->whiteToMove? position->blackOccupancy : position->whiteOccupancy;
 
         while(knights){
-            int square = __builtin_ffsll(knights);
+            int square = __builtin_ffsll(knights)-1;
             Bitboard knightTargets = knightAttacks[square];
             Bitboard quiets = knightTargets & (~position->occupancy);
             Bitboard captures = knightTargets & enemies;
             while(quiets){
-                int target = __builtin_ffsll(quiets);
+                int target = __builtin_ffsll(quiets)-1;
                 moves.emplace_back(target | (square<<6));
                 quiets &= ~(1ULL << target);
             }
             while(captures){
-                int target = __builtin_ffsll(captures);
+                int target = __builtin_ffsll(captures)-1;
                 moves.emplace_back(target | (square<<6) | (4 << 12));
                 captures &= ~(1ULL << target);
             }
+            knights &= ~(1ULL << square);
         }
     }
 
@@ -133,51 +101,55 @@ namespace Engine {
         return attacks;
     }
 
-    void MoveGenerator::generateKingMoves(std::vector<Move>& moves,Position* position,int squareIndex){ // add castling generation
+    Bitboard MoveGenerator::generateKingAttacks(int squareIndex){
         int x = squareIndex % 8;
         int y = squareIndex / 8;
+        Bitboard attacks;
         static constexpr std::array<std::pair<int, int>, 8> directions = {
                 {{0, 1}, {1, 1}, {1, 0}, {1, -1},{0, -1}, {-1, -1}, {-1, 0}, {-1, 1}}
         };
-        Bitboard friendlyOccupancy = position->whiteToMove? position->whiteOccupancy : position->blackOccupancy;
-
         for (const auto& dir : directions) {
             int newX = x + dir.first;
             int newY = y + dir.second;
             if (newX >= 0 && newX < 8 && newY >= 0 && newY < 8) {
                 int newSquareIndex = newY * 8 + newX;
-                if((position->occupancy & (std::bitset<64>(1) << (newSquareIndex))).none()) { // no capture
-                    moves.emplace_back(newSquareIndex | (squareIndex <<6));
-                }
-                else if((friendlyOccupancy & (std::bitset<64>(1) << (newSquareIndex))).none()){ // no self capture
-                    moves.emplace_back(newSquareIndex | (squareIndex <<6) | (1<<14));
-                }
+                attacks |= 1ULL << newSquareIndex;
             }
+        }
+        return attacks;
+    }
+
+    void MoveGenerator::generateKingMoves(std::vector<Move>& moves,Position* position,int square){ // add castling generation
+        Bitboard enemies = position->whiteToMove? position->blackOccupancy : position->whiteOccupancy;
+
+        Bitboard attacks = kingAttacks[square];
+        Bitboard quiets = attacks & (~position->occupancy);
+        Bitboard captures = attacks & enemies;
+
+        // moves and captures
+        while(quiets){
+            int target = __builtin_ffsll(quiets)-1;
+            moves.emplace_back(target | (square<<6));
+            quiets &= ~(1ULL << target);
+        }
+        while(captures){
+            int target = __builtin_ffsll(captures)-1;
+            moves.emplace_back(target | (square<<6) | (4 << 12));
+            captures &= ~(1ULL << target);
         }
 
         // castling
-        if(position->whiteToMove){
-            if(position-> whiteKingsideCastle){
-                if((position->occupancy & Bitboard(0x60)).none()){
-                    moves.emplace_back(6 | (squareIndex <<6) | (2<<12));
-                }
+        if((position->whiteToMove && (position->whiteKingsideCastle || position->whiteQueensideCastle)) || (~position->whiteToMove && (position->blackKingsideCastle || position->blackQueensideCastle))){
+            const Bitboard kingsideMask = position->whiteToMove? 0x60 : 0x6000000000000000;
+            const Bitboard queensideMask = position->whiteToMove? 0xE : 0xE000000000000000;
+
+            if(~kingsideMask & position->occupancy){ //kingside castle
+                const int target = position->whiteToMove? 6 : 62;
+                moves.emplace_back(target | (square<<6) | (2 << 12));
             }
-            if(position-> whiteQueensideCastle){
-                if((position->occupancy & Bitboard(0xE)).none()){
-                    moves.emplace_back(2 | (squareIndex <<6) | (3<<12));
-                }
-            }
-        }
-        else{
-            if(position-> blackKingsideCastle){
-                if((position->occupancy & Bitboard(0x6000000000000000)).none()){
-                    moves.emplace_back(62 | (squareIndex <<6) | (2<<12));
-                }
-            }
-            if(position-> blackQueensideCastle){
-                if((position->occupancy & Bitboard(0xE00000000000000)).none()){
-                    moves.emplace_back(58 | (squareIndex <<6) | (3<<12));
-                }
+            if(~queensideMask & position->occupancy){ //queenside castle
+                const int target = position->whiteToMove? 2 : 58;
+                moves.emplace_back(target | (square<<6) | (3 << 12));
             }
         }
     }
@@ -202,13 +174,13 @@ namespace Engine {
         Bitboard doublePushTargets = singlePushTargets << upOne & (~position->occupancy) & doublePushTargetRank;
 
         while(singlePushTargets){ //single pawn push
-            int index = __builtin_ffsll(singlePushTargets);
+            int index = __builtin_ffsll(singlePushTargets)-1;
             moves.emplace_back(index | (index-upOne)<<6);
             singlePushTargets &= ~(1ULL << index);
         }
 
         while(doublePushTargets){ //double pawn push
-            int index = __builtin_ffsll(doublePushTargets);
+            int index = __builtin_ffsll(doublePushTargets)-1;
             moves.emplace_back(index | (index-upOne*2)<<6| (1 << 12));
             doublePushTargets &= ~(1ULL << index);
         }
@@ -219,7 +191,7 @@ namespace Engine {
             Bitboard pushPromo = (promotablePawns << upOne) & (~position->occupancy);
 
             while(leftAttackPromo){
-                int index = __builtin_ffsll(leftAttackPromo);
+                int index = __builtin_ffsll(leftAttackPromo)-1;
                 moves.emplace_back(index | (index-upLeft)<<6 |  (12 << 12));
                 moves.emplace_back(index | (index-upLeft)<<6 |  (13 << 12));
                 moves.emplace_back(index | (index-upLeft)<<6 |  (14 << 12));
@@ -227,7 +199,7 @@ namespace Engine {
                 leftAttackPromo &= ~(1ULL << index);
             }
             while(rightAttackPromo){
-                int index = __builtin_ffsll(rightAttackPromo);
+                int index = __builtin_ffsll(rightAttackPromo)-1;
                 moves.emplace_back(index | (index-upRight)<<6 |  (12 << 12));
                 moves.emplace_back(index | (index-upRight)<<6 |  (13 << 12));
                 moves.emplace_back(index | (index-upRight)<<6 |  (14 << 12));
@@ -235,7 +207,7 @@ namespace Engine {
                 rightAttackPromo &= ~(1ULL << index);
             }
             while(pushPromo){
-                int index = __builtin_ffsll(pushPromo);
+                int index = __builtin_ffsll(pushPromo)-1;
                 moves.emplace_back(index | (index-upOne)<<6 |  (8 << 12));
                 moves.emplace_back(index | (index-upOne)<<6 |  (9 << 12));
                 moves.emplace_back(index | (index-upOne)<<6 |  (10 << 12));
@@ -248,12 +220,12 @@ namespace Engine {
         Bitboard rightAttack = ((unpromotablePawns & notHFile) << upRight) & enemies;
 
         while (leftAttack){
-            int index = __builtin_ffsll(leftAttack);
+            int index = __builtin_ffsll(leftAttack)-1;
             moves.emplace_back(index | (index-upLeft)<<6 | (4 << 12));
             leftAttack &= ~(1ULL << index);
         }
         while (rightAttack){
-            int index = __builtin_ffsll(rightAttack);
+            int index = __builtin_ffsll(rightAttack)-1;
             moves.emplace_back(index | (index-upRight)<<6 | (4 << 12));
             rightAttack &= ~(1ULL << index);
         }
@@ -299,6 +271,7 @@ namespace Engine {
             while (shift == -1) {
                 randomMagic = dis(gen) & dis(gen) & dis(gen);
                 shift = validateMagic(true, i, randomMagic);
+                std::cout << shift << std::endl;
                 magicsTried++;
             }
             std::cout<< std::to_string(i+1)+ " magics found "+std::to_string(magicsTried)+ " magics tried" << std::endl;
@@ -334,12 +307,15 @@ namespace Engine {
             }
             bool collisions = false;
 
-            for (int i = 0; i < (1 << mask.count()); ++i) {
+            for (int i = 0; i < (1 << std::popcount(mask)); ++i) {
 
-                int index = blockerConfigs[i].to_ullong() * magic >> (64-shift); // what happens when own piece square is included in blockers?
+                uint64_t index = blockerConfigs[i] * magic >> (64-shift); // what happens when own piece square is included in blockers?
+//                std::cout<< std::to_string(index) +" index" <<std::endl;
 
                 Bitboard attack = isBishop ? floodfillBishopAttacks(squareIndex, blockerConfigs[i]) : floodfillRookAttacks(squareIndex, blockerConfigs[i]);
-
+//                std::cout <<std::to_string((*attackTable)[index]) + "table" <<std::endl;
+//                std::cout <<std::to_string((attack)) + "attack" <<std::endl;
+//                drawBitboard(attack);
                 if((*attackTable)[index] == 0){
                     (*attackTable)[index] = attack;
                     (*movesetTable)[index] = attackMapToMoveset(attack, blockerConfigs[i],squareIndex);
@@ -362,9 +338,9 @@ namespace Engine {
     std::vector<Move> MoveGenerator::attackMapToMoveset(Bitboard attackMap,Bitboard blockers, uint32_t squareIndex){
         std::vector<Move> moves;
         for (uint32_t i = 0; i < 64; ++i) {
-            if(attackMap.test(i)){
+            if(attackMap &(1ULL << i)){
                 uint32_t capture = 0;
-                if(blockers.test(i)) {
+                if(test(blockers,i)) {
                     capture = 1;
                 }
                 moves.emplace_back(i | (squareIndex << 6) | (capture << 14)); //will allow piece to stay in same place? -> YES MUST FIX
@@ -374,22 +350,20 @@ namespace Engine {
     }
 
 
-    void MoveGenerator::generateAllBlockerConfigs(std::vector<Bitboard>& configs, Bitboard mask){
-        int setBits[mask.count()];//move high bit extraction to a lut later?
-        int currentBit = 0;
-
+    void MoveGenerator::generateAllBlockerConfigs(std::vector<Bitboard>& configs, Bitboard mask) {
+        std::vector<int> setBits;
         for (int i = 0; i < 64; ++i) {
-            if(mask.test(i)){
-                setBits[currentBit] = i;
-                currentBit++;
+            if (mask & (1ULL << i)) {
+                setBits.push_back(i);
             }
         }
 
-        for (int i = 0; i < (1 << mask.count()); ++i) {
-            Bitboard blockers;
-            for (int j = 0; j < mask.count(); ++j) {
-                if((i >> j) & 1){
-                    blockers.set(setBits[j]);
+        int numBits = setBits.size();
+        for (int i = 0; i < (1 << numBits); ++i) {
+            Bitboard blockers = 0ULL;
+            for (int j = 0; j < numBits; ++j) {
+                if (i & (1ULL << j)) {
+                    blockers |= (1ULL << setBits[j]);
                 }
             }
             configs.push_back(blockers);
@@ -398,7 +372,7 @@ namespace Engine {
 
 
     Bitboard MoveGenerator::floodfillRookAttacks(int position,Bitboard blockers){
-        Bitboard moves;
+        Bitboard moves = 0;
         moves |= floodFill(0,position,blockers);
         moves |= floodFill(2,position,blockers);
         moves |= floodFill(4,position,blockers);
@@ -409,7 +383,7 @@ namespace Engine {
 
 
     Bitboard MoveGenerator::floodfillBishopAttacks(int position,Bitboard blockers){
-        Bitboard moves;
+        Bitboard moves = 0;
         moves |= floodFill(1,position,blockers);
         moves |= floodFill(3,position,blockers);
         moves |= floodFill(5,position,blockers);
@@ -420,7 +394,7 @@ namespace Engine {
 
 
     Bitboard MoveGenerator::generateRookMagicMask(int squareIndex){
-        Bitboard mask;
+        Bitboard mask = 0;
         mask |= generateMagicMaskRay(0,squareIndex);
         mask |= generateMagicMaskRay(2,squareIndex);
         mask |= generateMagicMaskRay(4,squareIndex);
@@ -430,7 +404,7 @@ namespace Engine {
 
 
     Bitboard MoveGenerator::generateBishopMagicMask(int squareIndex){
-        Bitboard mask;
+        Bitboard mask = 0;
         mask |= generateMagicMaskRay(1,squareIndex);
         mask |= generateMagicMaskRay(3,squareIndex);
         mask |= generateMagicMaskRay(5,squareIndex);
@@ -451,7 +425,7 @@ namespace Engine {
         directionToXYStep(direction,stepX,stepY);
 
         while (x >= 0 && x < 8 && y >=0 && y < 8) {
-            mask.set(x + y * 8);
+            set(mask,x + y * 8);
             x += stepX;
             y += stepY;
         }
@@ -467,7 +441,7 @@ namespace Engine {
         if(initialY !=7){
             mask &= 0x00FFFFFFFFFFFFFF;
         }
-        mask.reset(squareIndex); //??? how should own square occupancy be considered?
+        clear(mask,squareIndex); //??? how should own square occupancy be considered?
         return mask;
     }
 
@@ -484,14 +458,15 @@ namespace Engine {
         directionToXYStep(direction,stepX,stepY);
 //        blockers.reset(initialX + initialY*8); //??? IS THIS RIGHT?
         while(x >= 0 && x < 8 && y >=0 && y < 8){
-            mask.set(x +y*8);
-            if(blockers.test(x+y*8)){
+            set(mask,x +y*8);
+            if(test(blockers,x+y*8)){
                 break;
             }
             x+=stepX;
             y+=stepY;
+//            drawBitboard(mask);
         }
-        mask.reset(initialX + initialY*8);
+        clear(mask,initialX + initialY*8);
         return mask;
     }
 

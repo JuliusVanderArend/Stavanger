@@ -29,19 +29,19 @@ namespace Engine {
         int numPieces = 0; //get rid of this at some point
 
         std::array<Bitboard,13> pieceOccupancy;
+
         std::array<Piece,64> pieceNames;
         Bitboard occupancy;
         Bitboard whiteOccupancy;
         Bitboard blackOccupancy;
-        Bitboard& friendlyOccupancy = whiteOccupancy;
-        Bitboard& enemyOccupancy = blackOccupancy;
+        Bitboard* friendlyOccupancy = &whiteOccupancy; // does this work?
+        Bitboard* enemyOccupancy = &blackOccupancy;
 
 
 
 
         void draw();
         void debugDraw(std::string mode);
-        void drawBitboard(Bitboard bitboard);
         void toArray(int**& boardOut);
 
         void addPiece(Piece piece, int x, int y);

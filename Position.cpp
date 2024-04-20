@@ -7,6 +7,7 @@
 namespace Engine {
     Position::Position() {
         std::fill(pieceNames.begin(), pieceNames.end(), Piece::NONE);
+        std::fill(pieceOccupancy.begin(), pieceOccupancy.end(), 0);
         // starting position
 //        addPiece(Piece::WHITE_ROOK, 0, 0);
 //        addPiece(Piece::WHITE_KNIGHT, 1, 0);
@@ -95,18 +96,20 @@ namespace Engine {
         }
         pieceNames[x+y*8] = piece;
         set(pieceOccupancy[piece+6],x+y*8);
+        drawBitboard(pieceOccupancy[piece+6]);
+        std::cout << piece << std::endl;
     }
 
     void Position::capturePiece(Piece piece, int square) {
         clear(occupancy,square);//maybe consider getting rid of total occupancy if its not used much
-        clear(enemyOccupancy,square);
+        clear(*enemyOccupancy,square);
         clear(pieceOccupancy[piece+6],square);
         pieceNames[square] = Piece::NONE;//maybe I don't have to do this?
     }
 
     void Position::movePiece(int from, int to) {
         move(occupancy,from,to);
-        move(friendlyOccupancy,from,to);
+        move(*friendlyOccupancy,from,to);
         move(pieceOccupancy[pieceNames[from]+6],from,to);
         pieceNames[to] = pieceNames[from];//maybe I don't have to do this?
         pieceNames[from] = Piece::NONE;
@@ -122,14 +125,7 @@ namespace Engine {
 //    }
 
 
-    void Position::drawBitboard(Bitboard bitboard) {
-        for (int i = 7; i >= 0; --i) {
-            for (int j = 0; j < 8; ++j) {
-                std::cout << " " + std::to_string(test(bitboard,i*8+j)) + " ";//?
-            }
-            std::cout << std::endl;
-        }
-    }
+
 
     void Position::debugDraw(std::string mode){
         if(mode == "occupancy") {
