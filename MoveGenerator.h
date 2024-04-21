@@ -35,6 +35,7 @@ namespace Engine {
         static Bitboard floodfillBishopAttacks(int position,Bitboard blockers);
         static Bitboard generateKnightAttacks(int squareIndex);
         static Bitboard generateKingAttacks(int squareIndex);
+        Bitboard generatePawnAttacks(int square, bool whiteToMove);
 
         static void directionToXYStep(int direction, int& stepX, int& stepY);
 
@@ -51,6 +52,8 @@ namespace Engine {
         void generateKingMoves(std::vector<Move>& moves,Position* position,int square);
         void generatePawnMoves(std::vector<Move>& moves,Position* position,Bitboard pawns);
 
+        bool squareIsAttacked(int square, Position* position);
+
         std::array<magicEntry,64> rookMagics;
         std::array<magicEntry,64> bishopMagics;
 
@@ -58,6 +61,8 @@ namespace Engine {
         std::array<std::array<Bitboard,1 << MAX_MAGIC_BITS>,64> bishopMagicAttacks; // can be smaller?
         std::array<Bitboard,64> knightAttacks;
         std::array<Bitboard,64> kingAttacks;
+        std::array<Bitboard,64> whitePawnAttacks;
+        std::array<Bitboard,64> blackPawnAttacks;
 
         std::array<std::array<std::vector<Move>,1 << MAX_MAGIC_BITS>,64> rookMagicMovesets;
         std::array<std::array<std::vector<Move>,1 << MAX_MAGIC_BITS>,64> bishopMagicMovesets;

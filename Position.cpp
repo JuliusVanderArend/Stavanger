@@ -60,29 +60,32 @@ namespace Engine {
         uint8_t to = move & 0x3F;
         uint8_t code = (move & 0xF000) >> 12;
 
+        int toMove = whiteToMove?1:-1;
+
+        savedEnPassantTarget = enPassantTarget;
         enPassantTarget = 0; //how do deal with reseting eptarget when unmaking moves?
         movePiece(from,to); //does all the bitboard manipulation need to happen as well? could be put off for better perf?
 
-//        switch (code) {
-//            case 1: //is double pawn push so set en passant target square
-//                enPassantTarget = to + (whiteToMove? -8:8);
-//                break;
-//            case 2: //Kingside castle
-//
-//                break;
-//
-//            case 3: //Queenside castle
-//
-//        }
-        return true;
+        switch (code) {
+            case 1: //is double pawn push so set en passant target square
+                enPassantTarget = to + (whiteToMove? -8:8);
+                break;
+            case 2: //Kingside castle
+                movePiece(whiteToMove?7:63,whiteToMove?5:61); //move rook and unset castling rights
+
+                break;
+
+            case 3: //Queenside castle
+
+        }
+
+        return false;
     }
 
     bool Position::squareIsAttacked(int square){ //maybe make return index of attacking piece?
-//        if(whiteToMove){
-//
-//        }else{
-//
-//        }
+        int toMove = whiteToMove? 1:-1;
+
+
         return false;
     }
 

@@ -25,6 +25,7 @@ namespace Engine {
         bool blackQueensideCastle = false;
 
         int enPassantTarget = 0;
+        int savedEnPassantTarget = 0;
         bool whiteToMove = true;
         int numPieces = 0; //get rid of this at some point
 

@@ -9,11 +9,13 @@
 
 namespace Engine {
     MoveGenerator::MoveGenerator() {
-        for (int i = 0; i < 64; ++i) {
+        for (int i = 0; i < 64; ++i) { // set up lookup tables
             rookMagicMasks[i] = generateRookMagicMask(i);
             bishopMagicMasks[i] = generateBishopMagicMask(i);
             knightAttacks[i] = generateKnightAttacks(i);
             kingAttacks[i] = generateKingAttacks(i);
+            whitePawnAttacks[i] = generatePawnAttacks(i,true);
+            blackPawnAttacks[i] = generatePawnAttacks(i,false);
         }
 
         initializeMagics();
@@ -29,7 +31,7 @@ namespace Engine {
         generateKingMoves(generatedMoves,position,__builtin_ffsll(position->pieceOccupancy[6*toMove+6])-1);
         generatePawnMoves(generatedMoves,position,position->pieceOccupancy[1*toMove+6]);//maybe can just get rid of +6??
         generateKnightMoves(generatedMoves,position,position->pieceOccupancy[2*toMove+6]);
-        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[3*toMove+6],bishopMagicAttacks,bishopMagicMasks,bishopMagics); //bishops
+        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[3*toMove+6],bishopMagicAttacks,bishopMagicMasks,bishopMagics); //bishops //ADD OPTIMISATION TO GENERATE ROOK AND BISHOP LIKE QUEEN MOVES WITH ROOKS AND BISHOPS
         generateMagicMoves(generatedMoves,position,position->pieceOccupancy[4*toMove+6],rookMagicAttacks,rookMagicMasks,rookMagics); //rooks
         generateMagicMoves(generatedMoves,position,position->pieceOccupancy[5*toMove+6],bishopMagicAttacks,bishopMagicMasks,bishopMagics); //queens
         generateMagicMoves(generatedMoves,position,position->pieceOccupancy[5*toMove+6],rookMagicAttacks,rookMagicMasks,rookMagics);
@@ -83,9 +85,9 @@ namespace Engine {
         }
     }
 
-    Bitboard MoveGenerator::generateKnightAttacks(int squareIndex){
-        int x = squareIndex % 8;
-        int y = squareIndex / 8;
+    Bitboard MoveGenerator::generateKnightAttacks(int square){
+        int x = square % 8;
+        int y = square / 8;
         Bitboard attacks = 0;
         static constexpr std::array<std::pair<int, int>, 8> directions = {
                 {{1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}}
@@ -94,16 +96,16 @@ namespace Engine {
             int newX = x + dir.first;
             int newY = y + dir.second;
             if (newX >= 0 && newX < 8 && newY >= 0 && newY < 8) {
-                int newSquareIndex = newY * 8 + newX;
-                attacks |= 1ULL << newSquareIndex;
+                int newSquare = newY * 8 + newX;
+                attacks |= 1ULL << newSquare;
             }
         }
         return attacks;
     }
 
-    Bitboard MoveGenerator::generateKingAttacks(int squareIndex){
-        int x = squareIndex % 8;
-        int y = squareIndex / 8;
+    Bitboard MoveGenerator::generateKingAttacks(int square){
+        int x = square % 8;
+        int y = square / 8;
         Bitboard attacks = 0;
         static constexpr std::array<std::pair<int, int>, 8> directions = {
                 {{0, 1}, {1, 1}, {1, 0}, {1, -1},{0, -1}, {-1, -1}, {-1, 0}, {-1, 1}}
@@ -112,12 +114,32 @@ namespace Engine {
             int newX = x + dir.first;
             int newY = y + dir.second;
             if (newX >= 0 && newX < 8 && newY >= 0 && newY < 8) {
-                int newSquareIndex = newY * 8 + newX;
-                attacks |= (1ULL << newSquareIndex);
+                int newSquare = newY * 8 + newX;
+                attacks |= (1ULL << newSquare);
             }
         }
         return attacks;
     }
+
+    Bitboard MoveGenerator::generatePawnAttacks(int square, bool whiteToMove){
+        Bitboard attacks = 0;
+
+        // Calculate the pawn attacks
+        if (whiteToMove) { // White pawn
+            if (square % 8 != 0) // Not in file 'a'
+                attacks |= (1ULL << (square + 7)); // Capture to the left
+            if (square % 8 != 7) // Not in file 'h'
+                attacks |= (1ULL << (square + 9)); // Capture to the right
+        } else { // Black pawn
+            if (square % 8 != 7) // Not in file 'h'
+                attacks |= (1ULL << (square - 7)); // Capture to the right
+            if (square % 8 != 0) // Not in file 'a'
+                attacks |= (1ULL << (square - 9)); // Capture to the left
+        }
+
+        return attacks;
+    }
+
 
     void MoveGenerator::generateKingMoves(std::vector<Move>& moves,Position* position,int square){ // add castling generation
         Bitboard enemies = position->whiteToMove? position->blackOccupancy : position->whiteOccupancy;
@@ -258,6 +280,7 @@ namespace Engine {
 
 
 
+
     void MoveGenerator::initializeMagics() {
         std::random_device rd;
         std::mt19937_64 gen(rd());
@@ -310,12 +333,8 @@ namespace Engine {
             for (int i = 0; i < (1 << std::popcount(mask)); ++i) {
 
                 uint64_t index = blockerConfigs[i] * magic >> (64-shift); // what happens when own piece square is included in blockers?
-//                std::cout<< std::to_string(index) +" index" <<std::endl;
-
                 Bitboard attack = isBishop ? floodfillBishopAttacks(squareIndex, blockerConfigs[i]) : floodfillRookAttacks(squareIndex, blockerConfigs[i]);
-//                std::cout <<std::to_string((*attackTable)[index]) + "table" <<std::endl;
-//                std::cout <<std::to_string((attack)) + "attack" <<std::endl;
-//                drawBitboard(attack);
+
                 if((*attackTable)[index] == 0){
                     (*attackTable)[index] = attack;
                     (*movesetTable)[index] = attackMapToMoveset(attack, blockerConfigs[i],squareIndex);
@@ -332,6 +351,26 @@ namespace Engine {
             }
         }
         return -1;
+    }
+
+    bool MoveGenerator::squareIsAttacked(int square, Position* position){
+
+        int enemyToMove = position->whiteToMove? -1:1;
+
+        Bitboard enemyPawns = position->pieceOccupancy[1*enemyToMove+6];
+        Bitboard enemyKnights   = position->pieceOccupancy[2*enemyToMove+6];
+        Bitboard enemyBQ = 0;
+        Bitboard enemyRQ = enemyBQ = position->pieceOccupancy[5*enemyToMove+6];
+        enemyRQ |= position->pieceOccupancy[4*enemyToMove+6];
+        enemyBQ |= position->pieceOccupancy[3*enemyToMove+6];
+
+        Bitboard pawnAttacks = position->whiteToMove? whitePawnAttacks[square] : blackPawnAttacks[square];
+
+        return (pawnAttacks & enemyPawns)
+               | (knightAttacks[square] & enemyKnights)
+               | (bishopMagicAttacks[square][(position->occupancy & bishopMagicMasks[square]) * bishopMagics[square].magic >> (64 - bishopMagics[square].indexSize)]  & enemyBQ)
+               | (rookMagicAttacks[square][(position->occupancy & rookMagicMasks[square]) * rookMagics[square].magic >> (64 - rookMagics[square].indexSize)]  & enemyRQ)
+                ;
     }
 
 
