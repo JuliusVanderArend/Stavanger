@@ -29,20 +29,20 @@ namespace Engine {
         generateKingMoves(generatedMoves,position,__builtin_ffsll(position->pieceOccupancy[6*toMove+6])-1);
         generatePawnMoves(generatedMoves,position,position->pieceOccupancy[1*toMove+6]);//maybe can just get rid of +6??
         generateKnightMoves(generatedMoves,position,position->pieceOccupancy[2*toMove+6]);
-        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[3*toMove+6],bishopMagicAttacks); //bishops
-        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[4*toMove+6],rookMagicAttacks); //rooks
-        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[5*toMove+6],bishopMagicAttacks); //queens
-        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[5*toMove+6],rookMagicAttacks);
+        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[3*toMove+6],bishopMagicAttacks,bishopMagicMasks,bishopMagics); //bishops
+        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[4*toMove+6],rookMagicAttacks,rookMagicMasks,rookMagics); //rooks
+        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[5*toMove+6],bishopMagicAttacks,bishopMagicMasks,bishopMagics); //queens
+        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[5*toMove+6],rookMagicAttacks,rookMagicMasks,rookMagics);
         return generatedMoves;
     }
 
-    void MoveGenerator::generateMagicMoves(std::vector<Move>& moves,Position* position,Bitboard pieces, std::array<std::array<Bitboard,1 << MAX_MAGIC_BITS>,64>& magicAttacks){ //refactor all LUT based pieces to use same function
+    void MoveGenerator::generateMagicMoves(std::vector<Move>& moves,Position* position,Bitboard pieces, std::array<std::array<Bitboard,1 << MAX_MAGIC_BITS>,64>& magicAttacks, std::array<Bitboard,64>& magicMasks, std::array<magicEntry,64> magics){ //refactor all LUT based pieces to use same function
 
         Bitboard enemies = position->whiteToMove? position->blackOccupancy : position->whiteOccupancy;
 
         while(pieces){
             int square = __builtin_ffsll(pieces)-1;
-            Bitboard attacks = magicAttacks[square][(position->occupancy & rookMagicMasks[square]) * rookMagics[square].magic >> (64 - rookMagics[square].indexSize)];
+            Bitboard attacks = magicAttacks[square][(position->occupancy & magicMasks[square]) * magics[square].magic >> (64 - magics[square].indexSize)];
             Bitboard captures = attacks & enemies;
             Bitboard quiets = attacks & (~position->occupancy);
             while(quiets){
@@ -86,7 +86,7 @@ namespace Engine {
     Bitboard MoveGenerator::generateKnightAttacks(int squareIndex){
         int x = squareIndex % 8;
         int y = squareIndex / 8;
-        Bitboard attacks;
+        Bitboard attacks = 0;
         static constexpr std::array<std::pair<int, int>, 8> directions = {
                 {{1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}, {-2, -1}, {-2, 1}, {-1, 2}}
         };
@@ -104,7 +104,7 @@ namespace Engine {
     Bitboard MoveGenerator::generateKingAttacks(int squareIndex){
         int x = squareIndex % 8;
         int y = squareIndex / 8;
-        Bitboard attacks;
+        Bitboard attacks = 0;
         static constexpr std::array<std::pair<int, int>, 8> directions = {
                 {{0, 1}, {1, 1}, {1, 0}, {1, -1},{0, -1}, {-1, -1}, {-1, 0}, {-1, 1}}
         };
@@ -113,7 +113,7 @@ namespace Engine {
             int newY = y + dir.second;
             if (newX >= 0 && newX < 8 && newY >= 0 && newY < 8) {
                 int newSquareIndex = newY * 8 + newX;
-                attacks |= 1ULL << newSquareIndex;
+                attacks |= (1ULL << newSquareIndex);
             }
         }
         return attacks;

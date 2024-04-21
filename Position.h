@@ -19,10 +19,10 @@ namespace Engine {
     public:
         Position();
 
-        bool whiteKingsideCastle = true;
-        bool whiteQueensideCastle = true;
-        bool blackKingsideCastle = true;
-        bool blackQueensideCastle = true;
+        bool whiteKingsideCastle = false; //remember to make this true again
+        bool whiteQueensideCastle = false;
+        bool blackKingsideCastle = false;
+        bool blackQueensideCastle = false;
 
         int enPassantTarget = 0;
         bool whiteToMove = true;
@@ -31,10 +31,10 @@ namespace Engine {
         std::array<Bitboard,13> pieceOccupancy;
 
         std::array<Piece,64> pieceNames;
-        Bitboard occupancy;
-        Bitboard whiteOccupancy;
-        Bitboard blackOccupancy;
-        Bitboard* friendlyOccupancy = &whiteOccupancy; // does this work?
+        Bitboard occupancy = 0;
+        Bitboard whiteOccupancy = 0; //color occupancy not including kings???
+        Bitboard blackOccupancy = 0;
+        Bitboard* friendlyOccupancy = &whiteOccupancy; // does this work? remember to change when make move
         Bitboard* enemyOccupancy = &blackOccupancy;
 
 

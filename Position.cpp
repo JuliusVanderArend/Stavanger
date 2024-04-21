@@ -40,7 +40,7 @@ namespace Engine {
         addPiece(Piece::WHITE_BISHOP, 4, 2);
 //        addPiece(Piece::WHITE_QUEEN, 6, 2);
         addPiece(Piece::WHITE_KING, 7, 1);
-        addPiece(Piece::WHITE_KNIGHT, 1, 1);
+        addPiece(Piece::WHITE_KNIGHT, 1, 4);
         addPiece(Piece::WHITE_PAWN, 1, 1);
 
 //        addPiece(Piece::WHITE_PAWN, 3, 3);

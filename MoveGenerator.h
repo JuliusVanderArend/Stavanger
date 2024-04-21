@@ -25,7 +25,7 @@ namespace Engine {
         std::vector<Move> generateMoves(Position* position);
 
     private:
-        static const int MAX_MAGIC_BITS = 16;
+        static const int MAX_MAGIC_BITS = 15;
 
         static Bitboard generateMagicMaskRay(int direction, int squareIndex);
         static Bitboard generateRookMagicMask(int squareIndex);
@@ -45,7 +45,8 @@ namespace Engine {
 
         static std::vector<Move> attackMapToMoveset(Bitboard attackMap,Bitboard blockers, uint32_t squareIndex);
 
-        void generateMagicMoves(std::vector<Move>& moves,Position* position,Bitboard pieces, std::array<std::array<Bitboard,1 << MAX_MAGIC_BITS>,64>& magicAttacks);
+        void generateMagicMoves(std::vector<Move>& moves,Position* position,Bitboard pieces, std::array<std::array<Bitboard,
+                                1 << MAX_MAGIC_BITS>,64>& magicAttacks, std::array<Bitboard,64>& magicMasks, std::array<magicEntry,64> magics);
         void generateKnightMoves(std::vector<Move>& moves,Position* position,Bitboard knights);
         void generateKingMoves(std::vector<Move>& moves,Position* position,int square);
         void generatePawnMoves(std::vector<Move>& moves,Position* position,Bitboard pawns);
