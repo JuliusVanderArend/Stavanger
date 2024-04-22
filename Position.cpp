@@ -55,39 +55,72 @@ namespace Engine {
 
     }
 
-    bool Position::makeMove(Move move){
+    void Position::makeMove(Move move){
         uint8_t from = (move & 0xFC0) >> 6;
         uint8_t to = move & 0x3F;
         uint8_t code = (move & 0xF000) >> 12;
 
         int toMove = whiteToMove?1:-1;
 
-        savedEnPassantTarget = enPassantTarget;
-        enPassantTarget = 0; //how do deal with reseting eptarget when unmaking moves?
-        movePiece(from,to); //does all the bitboard manipulation need to happen as well? could be put off for better perf?
 
-        switch (code) {
+        switch (code) { // refactor this later, probably a more elegant and less branchy way of doing it.
+            case 0://quiet moves
+                movePiece(from,to); //does all the bitboard manipulation need to happen as well? could be put off for better perf?
+                break;
             case 1: //is double pawn push so set en passant target square
+                movePiece(from,to);
                 enPassantTarget = to + (whiteToMove? -8:8);
                 break;
-            case 2: //Kingside castle
+            case 2: //Kingside 
+                movePiece(from,to);
                 movePiece(whiteToMove?7:63,whiteToMove?5:61); //move rook and unset castling rights
-
+                if(whiteToMove){
+                    whiteQueensideCastle = false;
+                    whiteKingsideCastle = false;
+                }
+                else{
+                    blackQueensideCastle = false;
+                    blackKingsideCastle = false;
+                }
                 break;
-
             case 3: //Queenside castle
-
+                movePiece(from,to);
+                movePiece(whiteToMove?0:56,whiteToMove?3:59); //move rook and unset castling rights
+                if(whiteToMove){
+                    whiteQueensideCastle = false;
+                    whiteKingsideCastle = false;
+                }
+                else{
+                    blackQueensideCastle = false;
+                    blackKingsideCastle = false;
+                }
+                break;
+            case 4: //capture
+                capturePiece(from,to);
+                break;
+            case 5: //enpessant capture
+                capturePieceEP(from,to);
+                break;
+            case 8: // simple promotions
+            case 9:
+            case 10:
+            case 11:
+                movePiecePromote(from,to,code);
+                break;
+            case 12: // capture promotions
+            case 13:
+            case 14:
+            case 15:
+                capturePiecePromote(from,to,code);
+                break;
+            default:
+                break;
         }
 
-        return false;
+        savedEnPassantTarget = enPassantTarget;
+        enPassantTarget = 0; //how do deal with resetting eptarget when unmaking moves?
     }
 
-    bool Position::squareIsAttacked(int square){ //maybe make return index of attacking piece?
-        int toMove = whiteToMove? 1:-1;
-
-
-        return false;
-    }
 
     void Position::addPiece(Piece piece, int x, int y) {
         set(occupancy,y*8 + x);
@@ -103,11 +136,31 @@ namespace Engine {
         std::cout << piece << std::endl;
     }
 
-    void Position::capturePiece(Piece piece, int square) {
-        clear(occupancy,square);//maybe consider getting rid of total occupancy if its not used much
-        clear(*enemyOccupancy,square);
-        clear(pieceOccupancy[piece+6],square);
-        pieceNames[square] = Piece::NONE;//maybe I don't have to do this?
+    void Position::capturePiece(int from, int to) {
+        clear(occupancy,from); //clear occupancy of from square
+        move(*friendlyOccupancy,from,to); //move friendly occupancy to destination
+        clear(*enemyOccupancy,to); //clear enemy occupancy in destination
+
+        clear(pieceOccupancy[pieceNames[to]+6],to); //clear captured piece bit
+
+        move(pieceOccupancy[pieceNames[from]+6],from,to); //move capturing piece bit
+
+        pieceNames[to] = pieceNames[from];//update piece names
+        pieceNames[from] = Piece::NONE;
+    }
+
+    void Position::capturePieceEP(int from, int to) { //be very carefull to get the logic right here
+        move(occupancy,from,to); //move occupancy to destination
+        move(*friendlyOccupancy,from,to); //move friendly occupancy to destination
+        clear(*enemyOccupancy,enPassantTarget); //clear enemy occupancy in en passant square
+
+        clear(pieceOccupancy[pieceNames[enPassantTarget]+6],enPassantTarget); //clear captured piece bit
+
+        move(pieceOccupancy[pieceNames[from]+6],from,to); //move capturing piece bit
+
+        pieceNames[to] = pieceNames[from];//update piece names
+        pieceNames[from] = Piece::NONE;
+        pieceNames[enPassantTarget] = Piece::NONE;
     }
 
     void Position::movePiece(int from, int to) {
@@ -118,15 +171,68 @@ namespace Engine {
         pieceNames[from] = Piece::NONE;
     }
 
-//    int Position::getPieceIndex(Engine::Piece piece, int x, int y) {
-//        for (int i = 0; i < numPieces; ++i) {
-//            if(pieces[i]._Find_first() == x+y*8 && pieceNames[i] == piece){
-//                return i;
-//            }
-//        }
-//        return -1;
-//    }
+    void Position::movePiecePromote(int from, int to, int code) {
+        Piece promoted = Piece::NONE;
+        switch (code) {
+            case 8:
+                promoted = whiteToMove? Piece::WHITE_KNIGHT:Piece::BLACK_KNIGHT;
+                break;
+            case 9:
+                promoted = whiteToMove? Piece::WHITE_BISHOP:Piece::BLACK_BISHOP;
+                break;
+            case 10:
+                promoted = whiteToMove? Piece::WHITE_ROOK:Piece::BLACK_ROOK;
+                break;
+            case 11:
+                promoted = whiteToMove? Piece::WHITE_QUEEN:Piece::BLACK_QUEEN;
+                break;
+            default:
+                std::cout << "ERROR wrong promotion code" << std::endl;
+        }
 
+
+        move(occupancy,from,to);
+        move(*friendlyOccupancy,from,to);
+
+        clear(pieceOccupancy[pieceNames[from]+6],from); //create promoted piece
+        set(pieceOccupancy[promoted+6],to);
+
+        pieceNames[to] = promoted;//maybe I don't have to do this?
+        pieceNames[from] = Piece::NONE;
+    }
+
+    void Position::capturePiecePromote(int from, int to, int code) {
+        Piece promoted = Piece::NONE;
+        switch (code) {
+            case 8:
+                promoted = whiteToMove? Piece::WHITE_KNIGHT:Piece::BLACK_KNIGHT;
+                break;
+            case 9:
+                promoted = whiteToMove? Piece::WHITE_BISHOP:Piece::BLACK_BISHOP;
+                break;
+            case 10:
+                promoted = whiteToMove? Piece::WHITE_ROOK:Piece::BLACK_ROOK;
+                break;
+            case 11:
+                promoted = whiteToMove? Piece::WHITE_QUEEN:Piece::BLACK_QUEEN;
+                break;
+            default:
+                std::cout << "ERROR wrong promotion code" << std::endl;
+        }
+
+
+        move(occupancy,from,to);
+        move(*friendlyOccupancy,from,to);
+
+        clear(pieceOccupancy[pieceNames[from]+6],from); //create promoted piece
+        set(pieceOccupancy[promoted+6],to);
+
+        clear(*enemyOccupancy,to);
+        clear(pieceOccupancy[pieceNames[to]+6],to); //clear captured piece bit
+
+        pieceNames[to] = promoted;//maybe I don't have to do this?
+        pieceNames[from] = Piece::NONE;
+    }
 
 
 

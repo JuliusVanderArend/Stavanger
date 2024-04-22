@@ -19,6 +19,8 @@ namespace Engine {
     public:
         Position();
 
+
+
         bool whiteKingsideCastle = false; //remember to make this true again
         bool whiteQueensideCastle = false;
         bool blackKingsideCastle = false;
@@ -45,13 +47,16 @@ namespace Engine {
         void debugDraw(std::string mode);
         void toArray(int**& boardOut);
 
+
+        void makeMove(Move move);
         void addPiece(Piece piece, int x, int y);
-        void capturePiece(Piece piece, int square);
+        void capturePiece(int from, int to);
+        void capturePieceEP(int from, int to);
         void movePiece(int from, int to);
+        void capturePiecePromote(int from, int to, int code);
+        void movePiecePromote(int from, int to, int code);
 
         int getPieceIndex(Piece piece, int x, int y); //try to avoid or optimise this as currently looping over all pieces
-        bool makeMove(Move move);
-        bool squareIsAttacked(int square);
 
     private:
 
