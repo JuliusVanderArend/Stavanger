@@ -2,50 +2,115 @@
 // Created by Julius on 28/02/2024.
 //
 
+#include <sstream>
 #include "Position.h"
 
 namespace Engine {
-    Position::Position() {
+    Position::Position(std::string fen) {
+
+        loadFromFEN(fen);
+
+////         starting position
+//        addPiece(Piece::WHITE_ROOK, 0, 0);
+//        addPiece(Piece::WHITE_KNIGHT, 1, 0);
+//        addPiece(Piece::WHITE_BISHOP, 2, 0);
+//        addPiece(Piece::WHITE_QUEEN, 3, 0);
+//        addPiece(Piece::WHITE_KING, 4, 0);
+//        addPiece(Piece::WHITE_BISHOP, 5, 0);
+//        addPiece(Piece::WHITE_KNIGHT, 6, 0);
+//        addPiece(Piece::WHITE_ROOK, 7, 0);
+//
+//        for (int i = 0; i < 8; ++i) {
+//            addPiece(Piece::WHITE_PAWN, i, 1);
+//        }
+//
+//        for (int i = 0; i < 8; ++i) {
+//            addPiece(Piece::BLACK_PAWN, i, 6);
+//        }
+//
+//        addPiece(Piece::BLACK_ROOK, 0, 7);
+//        addPiece(Piece::BLACK_KNIGHT, 1, 7);
+//        addPiece(Piece::BLACK_BISHOP, 2, 7);
+//        addPiece(Piece::BLACK_QUEEN, 3, 7);
+//        addPiece(Piece::BLACK_KING, 4, 7);
+//        addPiece(Piece::BLACK_BISHOP, 5, 7);
+//        addPiece(Piece::BLACK_KNIGHT, 6, 7);
+//        addPiece(Piece::BLACK_ROOK, 7, 7);
+    }
+
+    // Method to load position from FEN string
+    void Position::loadFromFEN(const std::string& fen) {
         std::fill(pieceNames.begin(), pieceNames.end(), Piece::NONE);
         std::fill(pieceOccupancy.begin(), pieceOccupancy.end(), 0);
-//         starting position
-        addPiece(Piece::WHITE_ROOK, 0, 0);
-        addPiece(Piece::WHITE_KNIGHT, 1, 0);
-        addPiece(Piece::WHITE_BISHOP, 2, 0);
-        addPiece(Piece::WHITE_QUEEN, 3, 0);
-        addPiece(Piece::WHITE_KING, 4, 0);
-        addPiece(Piece::WHITE_BISHOP, 5, 0);
-        addPiece(Piece::WHITE_KNIGHT, 6, 0);
-        addPiece(Piece::WHITE_ROOK, 7, 0);
+        occupancy = 0;
+        whiteOccupancy = 0;
+        blackOccupancy = 0;
 
-        for (int i = 0; i < 8; ++i) {
-            addPiece(Piece::WHITE_PAWN, i, 1);
+
+
+        size_t spacePos = fen.find(' ');
+        if (spacePos == std::string::npos) {
+            std::cerr << "Invalid FEN format: no space found" << std::endl;
+            return;
         }
 
-        for (int i = 0; i < 8; ++i) {
-            addPiece(Piece::BLACK_PAWN, i, 6);
+        std::string piecePlacement = fen.substr(0, spacePos);
+
+        std::string auxInfo = fen.substr(spacePos + 1);
+
+        int file = 0;
+        int rank = 7;
+
+        for (char c : piecePlacement) {
+            if (c == '/') {
+                rank--;
+                file = 0;
+                continue;
+            }
+            if (isdigit(c)) {
+                file += c - '0';
+            } else {
+                switch (c) {
+                    case 'p': addPiece(Piece::BLACK_PAWN, file, rank); break;
+                    case 'r': addPiece(Piece::BLACK_ROOK, file, rank); break;
+                    case 'n': addPiece(Piece::BLACK_KNIGHT, file, rank); break;
+                    case 'b': addPiece(Piece::BLACK_BISHOP, file, rank); break;
+                    case 'q': addPiece(Piece::BLACK_QUEEN, file, rank); break;
+                    case 'k': addPiece(Piece::BLACK_KING, file, rank); break;
+                    case 'P': addPiece(Piece::WHITE_PAWN, file, rank); break;
+                    case 'R': addPiece(Piece::WHITE_ROOK, file, rank); break;
+                    case 'N': addPiece(Piece::WHITE_KNIGHT, file, rank); break;
+                    case 'B': addPiece(Piece::WHITE_BISHOP, file, rank); break;
+                    case 'Q': addPiece(Piece::WHITE_QUEEN, file, rank); break;
+                    case 'K': addPiece(Piece::WHITE_KING, file, rank); break;
+                    default: break;
+                }
+                file++;
+            }
         }
 
-        addPiece(Piece::BLACK_ROOK, 0, 7);
-        addPiece(Piece::BLACK_KNIGHT, 1, 7);
-        addPiece(Piece::BLACK_BISHOP, 2, 7);
-        addPiece(Piece::BLACK_QUEEN, 3, 7);
-        addPiece(Piece::BLACK_KING, 4, 7);
-        addPiece(Piece::BLACK_BISHOP, 5, 7);
-        addPiece(Piece::BLACK_KNIGHT, 6, 7);
-        addPiece(Piece::BLACK_ROOK, 7, 7);
+        whiteKingsideCastle = false;
+        whiteQueensideCastle = false;
+        blackKingsideCastle = false;
+        blackQueensideCastle = false;
 
-//        //testing
-//        addPiece(Piece::WHITE_ROOK, 2, 2);
-//        addPiece(Piece::WHITE_BISHOP, 4, 2);
-////        addPiece(Piece::WHITE_QUEEN, 6, 2);
-//        addPiece(Piece::WHITE_KING, 7, 1);
-//        addPiece(Piece::WHITE_KNIGHT, 1, 4);
-//        addPiece(Piece::WHITE_PAWN, 1, 1);
+        for (char c : auxInfo) {
+            switch (c) {
+                case 'w': whiteToMove = true; break;
+                case 'b': whiteToMove = false; break;
+                case 'K': whiteKingsideCastle = true; break;
+                case 'Q': whiteQueensideCastle = true; break;
+                case 'k': blackKingsideCastle = true; break;
+                case 'q': blackQueensideCastle = true; break;
 
+                default: break;
+            }
+        }
 
-
+        friendlyOccupancy = whiteToMove?&whiteOccupancy:&blackOccupancy;
+        enemyOccupancy = whiteToMove?&blackOccupancy:&whiteOccupancy;
     }
+
 
     void Position::makeMove(Move move){
         uint8_t from = (move & 0xFC0) >> 6;

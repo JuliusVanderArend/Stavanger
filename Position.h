@@ -17,7 +17,7 @@ namespace Engine {
 
     class Position {
     public:
-        Position();
+        Position(std::string fen);
 
 
 
@@ -27,7 +27,6 @@ namespace Engine {
         bool blackQueensideCastle = true;
 
         int enPassantTarget = 0;
-        int savedEnPassantTarget = 0;
         bool whiteToMove = true;
         int numPieces = 0; //get rid of this at some point
 
@@ -42,10 +41,14 @@ namespace Engine {
 
 
 
-
         void draw();
         void debugDraw(std::string mode);
-        void toArray(int**& boardOut);
+        void loadFromFEN(const std::string& fen);
+
+
+
+    private:
+        int savedEnPassantTarget = 0;
 
 
         void makeMove(Move move);
@@ -57,10 +60,6 @@ namespace Engine {
         void movePiece(int from, int to);
         void capturePiecePromote(int from, int to, int code);
         void movePiecePromote(int from, int to, int code);
-
-        int getPieceIndex(Piece piece, int x, int y); //try to avoid or optimise this as currently looping over all pieces
-
-    private:
 
     };
 

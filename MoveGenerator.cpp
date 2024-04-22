@@ -161,15 +161,16 @@ namespace Engine {
         }
 
         // castling
-        if((position->whiteToMove && (position->whiteKingsideCastle || position->whiteQueensideCastle)) || (~position->whiteToMove && (position->blackKingsideCastle || position->blackQueensideCastle))){
+        if((position->whiteToMove && (position->whiteKingsideCastle || position->whiteQueensideCastle)) || (!position->whiteToMove && (position->blackKingsideCastle || position->blackQueensideCastle))){
             const Bitboard kingsideMask = position->whiteToMove? 0x60 : 0x6000000000000000;
             const Bitboard queensideMask = position->whiteToMove? 0xE : 0xE000000000000000;
 
-            if(~kingsideMask & position->occupancy){ //kingside castle
+
+            if(!(kingsideMask & position->occupancy)){ //kingside castle
                 const int target = position->whiteToMove? 6 : 62;
                 moves.emplace_back(target | (square<<6) | (2 << 12));
             }
-            if(~queensideMask & position->occupancy){ //queenside castle
+            if(!(queensideMask & position->occupancy)){ //queenside castle
                 const int target = position->whiteToMove? 2 : 58;
                 moves.emplace_back(target | (square<<6) | (3 << 12));
             }
@@ -294,7 +295,6 @@ namespace Engine {
             while (shift == -1) {
                 randomMagic = dis(gen) & dis(gen) & dis(gen);
                 shift = validateMagic(true, i, randomMagic);
-                std::cout << shift << std::endl;
                 magicsTried++;
             }
             std::cout<< std::to_string(i+1)+ " magics found "+std::to_string(magicsTried)+ " magics tried" << std::endl;

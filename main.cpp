@@ -14,7 +14,7 @@ using namespace Engine;
 int main() {
     std::cout << "Hello, World!" << std::endl;
 
-    Position pos;
+    Position pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 //    pos->whiteToMove = false;
 //    pos->debugDraw("occupancy");
 //    pos->debugDraw("white");
