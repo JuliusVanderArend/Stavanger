@@ -13,7 +13,7 @@ namespace Engine {
         addPiece(Piece::WHITE_KNIGHT, 1, 0);
         addPiece(Piece::WHITE_BISHOP, 2, 0);
         addPiece(Piece::WHITE_QUEEN, 3, 0);
-//        addPiece(Piece::WHITE_KING, 4, 0);
+        addPiece(Piece::WHITE_KING, 4, 0);
         addPiece(Piece::WHITE_BISHOP, 5, 0);
         addPiece(Piece::WHITE_KNIGHT, 6, 0);
         addPiece(Piece::WHITE_ROOK, 7, 0);
