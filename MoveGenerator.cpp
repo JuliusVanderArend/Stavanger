@@ -54,7 +54,7 @@ namespace Engine {
             }
             while(captures){
                 int target = __builtin_ffsll(captures)-1;
-                moves.emplace_back(target | (square<<6) | (4 << 12));
+                moves.emplace_back(target | (square<<6) | (4 << 12) | (position->pieceNames[target] << 16));
                 captures &= ~(1ULL << target);
             }
             pieces &= ~(1ULL << square);
@@ -78,7 +78,7 @@ namespace Engine {
             }
             while(captures){
                 int target = __builtin_ffsll(captures)-1;
-                moves.emplace_back(target | (square<<6) | (4 << 12));
+                moves.emplace_back(target | (square<<6) | (4 << 12) | (position->pieceNames[target] << 16));
                 captures &= ~(1ULL << target);
             }
             knights &= ~(1ULL << square);
@@ -156,7 +156,7 @@ namespace Engine {
         }
         while(captures){
             int target = __builtin_ffsll(captures)-1;
-            moves.emplace_back(target | (square<<6) | (4 << 12));
+            moves.emplace_back(target | (square<<6) | (4 << 12) | (position->pieceNames[target] << 16));
             captures &= ~(1ULL << target);
         }
 
@@ -243,12 +243,12 @@ namespace Engine {
 
         while (leftAttack){
             int index = __builtin_ffsll(leftAttack)-1;
-            moves.emplace_back(index | (index-upLeft)<<6 | (4 << 12));
+            moves.emplace_back(index | (index-upLeft)<<6 | (4 << 12) | (position->pieceNames[index] << 16));
             leftAttack &= ~(1ULL << index);
         }
         while (rightAttack){
             int index = __builtin_ffsll(rightAttack)-1;
-            moves.emplace_back(index | (index-upRight)<<6 | (4 << 12));
+            moves.emplace_back(index | (index-upRight)<<6 | (4 << 12) | (position->pieceNames[index] << 16));
             rightAttack &= ~(1ULL << index);
         }
 
@@ -258,20 +258,20 @@ namespace Engine {
         if(position->enPassantTarget !=0){
             if(position->enPassantTarget % 8 == 0){
                 if((1ULL <<(position->enPassantTarget +leftEP)) & unpromotablePawns){
-                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +leftEP)<<6 | (5 << 12));
+                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +leftEP)<<6 | (5 << 12)  | (position->pieceNames[position->enPassantTarget] << 16) );
                 }
             }
             else if(position->enPassantTarget % 8 == 7){
                 if((1ULL <<(position->enPassantTarget +rightEP)) & unpromotablePawns){
-                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +rightEP)<<6 | (5 << 12));
+                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +rightEP)<<6 | (5 << 12)| (position->pieceNames[position->enPassantTarget] << 16));
                 }
             }
             else{
                 if((1ULL <<(position->enPassantTarget +leftEP)) & unpromotablePawns){
-                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +leftEP)<<6 | (5 << 12));
+                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +leftEP)<<6 | (5 << 12)| (position->pieceNames[position->enPassantTarget] << 16));
                 }
                 if((1ULL <<(position->enPassantTarget +rightEP)) & unpromotablePawns){
-                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +rightEP)<<6 | (5 << 12));
+                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +rightEP)<<6 | (5 << 12)| (position->pieceNames[position->enPassantTarget] << 16));
                 }
             }
         }
