@@ -14,19 +14,19 @@ using namespace Engine;
 int main() {
     std::cout << "Hello, World!" << std::endl;
 
-    Position* pos = new Position();
+    Position pos;
 //    pos->whiteToMove = false;
 //    pos->debugDraw("occupancy");
 //    pos->debugDraw("white");
 //    pos->debugDraw("black");
 
     std::vector<Move> generatedMoves;
-    MoveGenerator* moveGen = new MoveGenerator();
+    MoveGenerator moveGen;
 
 
     auto start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < 1000000; ++i) {
-       generatedMoves =  moveGen->generateMoves(pos);
+       generatedMoves =  moveGen.generateMoves(&pos);
     }
     auto end = std::chrono::high_resolution_clock::now();
 
@@ -34,8 +34,8 @@ int main() {
     std::chrono::duration<double> duration = end - start;
     std::cout << "Time taken: " << duration.count() << " seconds" << std::endl;
 
-    pos->draw();
-    generatedMoves =  moveGen->generateMoves(pos);
+    pos.draw();
+    generatedMoves =  moveGen.generateMoves(&pos);
     std::cout << generatedMoves.size() << std::endl;
     for(Move move : generatedMoves){
         printMove(move);

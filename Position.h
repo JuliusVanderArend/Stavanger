@@ -21,10 +21,10 @@ namespace Engine {
 
 
 
-        bool whiteKingsideCastle = false; //remember to make this true again
-        bool whiteQueensideCastle = false;
-        bool blackKingsideCastle = false;
-        bool blackQueensideCastle = false;
+        bool whiteKingsideCastle = true; //remember to make this true again
+        bool whiteQueensideCastle = true;
+        bool blackKingsideCastle = true;
+        bool blackQueensideCastle = true;
 
         int enPassantTarget = 0;
         int savedEnPassantTarget = 0;
