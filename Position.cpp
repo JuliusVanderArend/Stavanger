@@ -121,10 +121,14 @@ namespace Engine {
         enPassantTarget = 0; //how do deal with resetting eptarget when unmaking moves?
     }
 
+//    void Position::unmakeMove(Move move){
+//
+//    }
+
 
     void Position::addPiece(Piece piece, int x, int y) {
         set(occupancy,y*8 + x);
-        if(piece > 0){
+        if(piece > 6){
             set(whiteOccupancy,y*8 + x);
         }
         else{
@@ -149,7 +153,34 @@ namespace Engine {
         pieceNames[from] = Piece::NONE;
     }
 
+    void Position::unCapturePiece(int from, int to, Piece piece){
+        set(occupancy, from);
+        move(*friendlyOccupancy,to,from);
+        set(*enemyOccupancy,to);
+
+        set(pieceOccupancy[piece],to); //clear captured piece bit
+
+        move(pieceOccupancy[pieceNames[to]],to,from); //move capturing piece bit
+
+        pieceNames[from] = pieceNames[to];
+        pieceNames[to] = piece;
+    }
+
     void Position::capturePieceEP(int from, int to) { //be very carefull to get the logic right here
+        move(occupancy,from,to); //move occupancy to destination
+        move(*friendlyOccupancy,from,to); //move friendly occupancy to destination
+        clear(*enemyOccupancy,enPassantTarget); //clear enemy occupancy in en passant square
+
+        clear(pieceOccupancy[pieceNames[enPassantTarget]],enPassantTarget); //clear captured piece bit
+
+        move(pieceOccupancy[pieceNames[from]],from,to); //move capturing piece bit
+
+        pieceNames[to] = pieceNames[from];//update piece names
+        pieceNames[from] = Piece::NONE;
+        pieceNames[enPassantTarget] = Piece::NONE;
+    }
+
+    void Position::unCapturePieceEP(int from, int to, Engine::Piece piece) {
         move(occupancy,from,to); //move occupancy to destination
         move(*friendlyOccupancy,from,to); //move friendly occupancy to destination
         clear(*enemyOccupancy,enPassantTarget); //clear enemy occupancy in en passant square

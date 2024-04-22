@@ -51,7 +51,9 @@ namespace Engine {
         void makeMove(Move move);
         void addPiece(Piece piece, int x, int y);
         void capturePiece(int from, int to);
+        void unCapturePiece(int from, int to, Piece piece);
         void capturePieceEP(int from, int to);
+        void unCapturePieceEP(int from, int to, Piece piece);
         void movePiece(int from, int to);
         void capturePiecePromote(int from, int to, int code);
         void movePiecePromote(int from, int to, int code);

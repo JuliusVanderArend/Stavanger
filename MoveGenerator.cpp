@@ -337,7 +337,7 @@ namespace Engine {
 
                 if((*attackTable)[index] == 0){
                     (*attackTable)[index] = attack;
-                    (*movesetTable)[index] = attackMapToMoveset(attack, blockerConfigs[i],squareIndex);
+//                    (*movesetTable)[index] = attackMapToMoveset(attack, blockerConfigs[i],squareIndex);
                 }
                 else if((*attackTable)[index] != attack){ //collision
                     shift++;
