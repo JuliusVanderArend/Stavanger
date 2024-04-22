@@ -16,18 +16,18 @@ typedef  uint32_t Move; //faster than uint16??? WHY??!
 
 namespace Engine {
     enum Piece {
-        WHITE_KING = 6,
-        WHITE_QUEEN = 5,
-        WHITE_PAWN = 1,
-        WHITE_BISHOP = 3,
-        WHITE_KNIGHT = 2,
-        WHITE_ROOK = 4,
-        BLACK_KING = -6,
-        BLACK_QUEEN = -5,
-        BLACK_PAWN = -1,
-        BLACK_BISHOP = -3,
-        BLACK_KNIGHT = -2,
-        BLACK_ROOK = -4,
+        WHITE_KING = 12,
+        WHITE_QUEEN = 11,
+        WHITE_PAWN = 7,
+        WHITE_BISHOP = 9,
+        WHITE_KNIGHT = 8,
+        WHITE_ROOK = 10,
+        BLACK_KING = 6,
+        BLACK_QUEEN = 5,
+        BLACK_PAWN = 1,
+        BLACK_BISHOP = 3,
+        BLACK_KNIGHT = 2,
+        BLACK_ROOK = 4,
         NONE = 0
     };
     bool isSliding(Piece piece);

@@ -131,8 +131,8 @@ namespace Engine {
             set(blackOccupancy,y*8 + x);
         }
         pieceNames[x+y*8] = piece;
-        set(pieceOccupancy[piece+6],x+y*8);
-        drawBitboard(pieceOccupancy[piece+6]);
+        set(pieceOccupancy[piece],x+y*8);
+        drawBitboard(pieceOccupancy[piece]);
         std::cout << piece << std::endl;
     }
 
@@ -141,9 +141,9 @@ namespace Engine {
         move(*friendlyOccupancy,from,to); //move friendly occupancy to destination
         clear(*enemyOccupancy,to); //clear enemy occupancy in destination
 
-        clear(pieceOccupancy[pieceNames[to]+6],to); //clear captured piece bit
+        clear(pieceOccupancy[pieceNames[to]],to); //clear captured piece bit
 
-        move(pieceOccupancy[pieceNames[from]+6],from,to); //move capturing piece bit
+        move(pieceOccupancy[pieceNames[from]],from,to); //move capturing piece bit
 
         pieceNames[to] = pieceNames[from];//update piece names
         pieceNames[from] = Piece::NONE;
@@ -154,9 +154,9 @@ namespace Engine {
         move(*friendlyOccupancy,from,to); //move friendly occupancy to destination
         clear(*enemyOccupancy,enPassantTarget); //clear enemy occupancy in en passant square
 
-        clear(pieceOccupancy[pieceNames[enPassantTarget]+6],enPassantTarget); //clear captured piece bit
+        clear(pieceOccupancy[pieceNames[enPassantTarget]],enPassantTarget); //clear captured piece bit
 
-        move(pieceOccupancy[pieceNames[from]+6],from,to); //move capturing piece bit
+        move(pieceOccupancy[pieceNames[from]],from,to); //move capturing piece bit
 
         pieceNames[to] = pieceNames[from];//update piece names
         pieceNames[from] = Piece::NONE;
@@ -166,7 +166,7 @@ namespace Engine {
     void Position::movePiece(int from, int to) {
         move(occupancy,from,to);
         move(*friendlyOccupancy,from,to);
-        move(pieceOccupancy[pieceNames[from]+6],from,to);
+        move(pieceOccupancy[pieceNames[from]],from,to);
         pieceNames[to] = pieceNames[from];//maybe I don't have to do this?
         pieceNames[from] = Piece::NONE;
     }
@@ -194,8 +194,8 @@ namespace Engine {
         move(occupancy,from,to);
         move(*friendlyOccupancy,from,to);
 
-        clear(pieceOccupancy[pieceNames[from]+6],from); //create promoted piece
-        set(pieceOccupancy[promoted+6],to);
+        clear(pieceOccupancy[pieceNames[from]],from); //create promoted piece
+        set(pieceOccupancy[promoted],to);
 
         pieceNames[to] = promoted;//maybe I don't have to do this?
         pieceNames[from] = Piece::NONE;
@@ -224,11 +224,11 @@ namespace Engine {
         move(occupancy,from,to);
         move(*friendlyOccupancy,from,to);
 
-        clear(pieceOccupancy[pieceNames[from]+6],from); //create promoted piece
-        set(pieceOccupancy[promoted+6],to);
+        clear(pieceOccupancy[pieceNames[from]],from); //create promoted piece
+        set(pieceOccupancy[promoted],to);
 
         clear(*enemyOccupancy,to);
-        clear(pieceOccupancy[pieceNames[to]+6],to); //clear captured piece bit
+        clear(pieceOccupancy[pieceNames[to]],to); //clear captured piece bit
 
         pieceNames[to] = promoted;//maybe I don't have to do this?
         pieceNames[from] = Piece::NONE;
@@ -256,40 +256,40 @@ namespace Engine {
                         std::cout << " . ";  // Empty square
                         break;
                     case 1:
-                        std::cout << " P ";  // Pawn
+                        std::cout << " p ";  // Pawn
                         break;
                     case 2:
-                        std::cout << " N ";  // Knight
+                        std::cout << " n ";  // Knight
                         break;
                     case 3:
-                        std::cout << " B ";  // Bishop
+                        std::cout << " b ";  // Bishop
                         break;
                     case 4:
-                        std::cout << " R ";  // Rook
+                        std::cout << " r ";  // Rook
                         break;
                     case 5:
-                        std::cout << " Q ";  // Queen
+                        std::cout << " q ";  // Queen
                         break;
                     case 6:
-                        std::cout << " K ";  // King
+                        std::cout << " k ";  // King
                         break;
-                    case -1:
-                        std::cout << " p ";  // Pawn (black)
+                    case 7:
+                        std::cout << " P ";  // Pawn (black)
                         break;
-                    case -2:
-                        std::cout << " n ";  // Knight (black)
+                    case 8:
+                        std::cout << " N ";  // Knight (black)
                         break;
-                    case -3:
-                        std::cout << " b ";  // Bishop (black)
+                    case 9:
+                        std::cout << " B ";  // Bishop (black)
                         break;
-                    case -4:
-                        std::cout << " r ";  // Rook (black)
+                    case 10:
+                        std::cout << " R ";  // Rook (black)
                         break;
-                    case -5:
-                        std::cout << " q ";  // Queen (black)
+                    case 11:
+                        std::cout << " Q ";  // Queen (black)
                         break;
-                    case -6:
-                        std::cout << " k ";  // King (black)
+                    case 12:
+                        std::cout << " K ";  // King (black)
                         break;
                     default:
                         std::cerr << "Unknown piece on the board!";

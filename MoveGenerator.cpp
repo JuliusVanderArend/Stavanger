@@ -27,14 +27,14 @@ namespace Engine {
         std::vector<Move> generatedMoves; //218 maximum moves from any given position
         generatedMoves.reserve(218);
 
-        int toMove = position->whiteToMove? 1:-1;
-        generateKingMoves(generatedMoves,position,__builtin_ffsll(position->pieceOccupancy[6*toMove+6])-1);
-        generatePawnMoves(generatedMoves,position,position->pieceOccupancy[1*toMove+6]);//maybe can just get rid of +6??
-        generateKnightMoves(generatedMoves,position,position->pieceOccupancy[2*toMove+6]);
-        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[3*toMove+6],bishopMagicAttacks,bishopMagicMasks,bishopMagics); //bishops //ADD OPTIMISATION TO GENERATE ROOK AND BISHOP LIKE QUEEN MOVES WITH ROOKS AND BISHOPS
-        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[4*toMove+6],rookMagicAttacks,rookMagicMasks,rookMagics); //rooks
-        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[5*toMove+6],bishopMagicAttacks,bishopMagicMasks,bishopMagics); //queens
-        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[5*toMove+6],rookMagicAttacks,rookMagicMasks,rookMagics);
+        int toMove = position->whiteToMove? 6:0;
+        generateKingMoves(generatedMoves,position,__builtin_ffsll(position->pieceOccupancy[toMove+6])-1);
+        generatePawnMoves(generatedMoves,position,position->pieceOccupancy[1+toMove]);//maybe can just get rid of +6??
+        generateKnightMoves(generatedMoves,position,position->pieceOccupancy[2+toMove]);
+        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[3+toMove],bishopMagicAttacks,bishopMagicMasks,bishopMagics); //bishops //ADD OPTIMISATION TO GENERATE ROOK AND BISHOP LIKE QUEEN MOVES WITH ROOKS AND BISHOPS
+        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[4+toMove],rookMagicAttacks,rookMagicMasks,rookMagics); //rooks
+        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[5+toMove],bishopMagicAttacks,bishopMagicMasks,bishopMagics); //queens
+        generateMagicMoves(generatedMoves,position,position->pieceOccupancy[5+toMove],rookMagicAttacks,rookMagicMasks,rookMagics);
         return generatedMoves;
     }
 
@@ -355,14 +355,14 @@ namespace Engine {
 
     bool MoveGenerator::squareIsAttacked(int square, Position* position){
 
-        int enemyToMove = position->whiteToMove? -1:1;
+        int enemyToMove = position->whiteToMove? 0:6;
 
-        Bitboard enemyPawns = position->pieceOccupancy[1*enemyToMove+6];
-        Bitboard enemyKnights   = position->pieceOccupancy[2*enemyToMove+6];
+        Bitboard enemyPawns = position->pieceOccupancy[1+enemyToMove];
+        Bitboard enemyKnights   = position->pieceOccupancy[2+enemyToMove];
         Bitboard enemyBQ = 0;
-        Bitboard enemyRQ = enemyBQ = position->pieceOccupancy[5*enemyToMove+6];
-        enemyRQ |= position->pieceOccupancy[4*enemyToMove+6];
-        enemyBQ |= position->pieceOccupancy[3*enemyToMove+6];
+        Bitboard enemyRQ = enemyBQ = position->pieceOccupancy[5+enemyToMove];
+        enemyRQ |= position->pieceOccupancy[4+enemyToMove];
+        enemyBQ |= position->pieceOccupancy[3+enemyToMove];
 
         Bitboard pawnAttacks = position->whiteToMove? whitePawnAttacks[square] : blackPawnAttacks[square];
 
