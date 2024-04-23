@@ -7,35 +7,7 @@
 
 namespace Engine {
     Position::Position(std::string fen) {
-
         loadFromFEN(fen);
-
-////         starting position
-//        addPiece(Piece::WHITE_ROOK, 0, 0);
-//        addPiece(Piece::WHITE_KNIGHT, 1, 0);
-//        addPiece(Piece::WHITE_BISHOP, 2, 0);
-//        addPiece(Piece::WHITE_QUEEN, 3, 0);
-//        addPiece(Piece::WHITE_KING, 4, 0);
-//        addPiece(Piece::WHITE_BISHOP, 5, 0);
-//        addPiece(Piece::WHITE_KNIGHT, 6, 0);
-//        addPiece(Piece::WHITE_ROOK, 7, 0);
-//
-//        for (int i = 0; i < 8; ++i) {
-//            addPiece(Piece::WHITE_PAWN, i, 1);
-//        }
-//
-//        for (int i = 0; i < 8; ++i) {
-//            addPiece(Piece::BLACK_PAWN, i, 6);
-//        }
-//
-//        addPiece(Piece::BLACK_ROOK, 0, 7);
-//        addPiece(Piece::BLACK_KNIGHT, 1, 7);
-//        addPiece(Piece::BLACK_BISHOP, 2, 7);
-//        addPiece(Piece::BLACK_QUEEN, 3, 7);
-//        addPiece(Piece::BLACK_KING, 4, 7);
-//        addPiece(Piece::BLACK_BISHOP, 5, 7);
-//        addPiece(Piece::BLACK_KNIGHT, 6, 7);
-//        addPiece(Piece::BLACK_ROOK, 7, 7);
     }
 
     // Method to load position from FEN string
@@ -175,7 +147,12 @@ namespace Engine {
         }
 
         savedEnPassantTarget = enPassantTarget;
-        enPassantTarget = 0; //how do deal with resetting eptarget when unmaking moves?
+        enPassantTarget = 0; //how do deal with resetting eptarget when unmaking moves recursively?
+
+        Bitboard* temp = friendlyOccupancy; //swap friendly/enemy occupancy ptrs.
+        friendlyOccupancy = enemyOccupancy;
+        enemyOccupancy = temp;
+
     }
 
 //    void Position::unmakeMove(Move move){
