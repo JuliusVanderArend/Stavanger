@@ -66,7 +66,8 @@ namespace Engine {
         blackKingsideCastle = false;
         blackQueensideCastle = false;
 
-        for (char c : auxInfo) {
+        for (auto it = auxInfo.begin(); it != auxInfo.end(); ++it) {
+            char c = *it;
             switch (c) {
                 case 'w': whiteToMove = true; break;
                 case 'b': whiteToMove = false; break;
@@ -76,6 +77,9 @@ namespace Engine {
                 case 'q': blackQueensideCastle = true; break;
 
                 default: break;
+            }
+            if(isalpha(c)&& isdigit(*(std::next(it)))){ //checking for a ep target square, kind of a hack, could be bad.
+                enPassantTarget = toIndex(std::string(it, it+2));
             }
         }
 
@@ -170,8 +174,8 @@ namespace Engine {
         }
         pieceNames[x+y*8] = piece;
         set(pieceOccupancy[piece],x+y*8);
-        drawBitboard(pieceOccupancy[piece]);
-        std::cout << piece << std::endl;
+//        drawBitboard(pieceOccupancy[piece]);
+//        std::cout << piece << std::endl;
     }
 
     void Position::capturePiece(int from, int to) {
@@ -200,18 +204,20 @@ namespace Engine {
         pieceNames[to] = piece;
     }
 
-    void Position::capturePieceEP(int from, int to) { //be very carefull to get the logic right here
+    void Position::capturePieceEP(int from, int to) { //be very careful to get the logic right here, potential to optimise this by storing capture square instead of en passant target
+        int captureSquare = enPassantTarget+ (whiteToMove?-8:8);
         move(occupancy,from,to); //move occupancy to destination
         move(*friendlyOccupancy,from,to); //move friendly occupancy to destination
-        clear(*enemyOccupancy,enPassantTarget); //clear enemy occupancy in en passant square
+        clear(*enemyOccupancy,captureSquare); //clear enemy occupancy in en passant square
+        clear(occupancy,captureSquare);
 
-        clear(pieceOccupancy[pieceNames[enPassantTarget]],enPassantTarget); //clear captured piece bit
+        clear(pieceOccupancy[pieceNames[captureSquare]],captureSquare); //clear captured piece bit
 
         move(pieceOccupancy[pieceNames[from]],from,to); //move capturing piece bit
 
         pieceNames[to] = pieceNames[from];//update piece names
         pieceNames[from] = Piece::NONE;
-        pieceNames[enPassantTarget] = Piece::NONE;
+        pieceNames[captureSquare] = Piece::NONE;
     }
 
     void Position::unCapturePieceEP(int from, int to, Engine::Piece piece) {

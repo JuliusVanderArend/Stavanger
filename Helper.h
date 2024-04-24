@@ -33,6 +33,7 @@ namespace Engine {
     bool isSliding(Piece piece);
     template<std::size_t N>
     std::string toCoordinates(int index);
+    int toIndex(const std::string& square);
     void printMove(uint32_t move);
     void drawBitboard(Bitboard bitboard);
     inline void set(Bitboard& bitboard, uint8_t index) {

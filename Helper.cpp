@@ -24,6 +24,12 @@ namespace Engine {
         return std::string(1, file) + std::string(1, rank);
     }
 
+    int toIndex(const std::string& square) {
+        int file = square[0] - 'a'; // Convert the file (letter) to a number (0-7)
+        int rank = square[1] - '1'; // Convert the rank (number) to a number (0-7)
+        return rank * 8 + file; // Calculate the board index
+    }
+
     void drawBitboard(Bitboard bitboard) {
         std::cout << "=======================" <<std::endl;
         for (int i = 7; i >= 0; --i) {

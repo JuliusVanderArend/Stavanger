@@ -19,7 +19,7 @@ namespace Engine {
         }
 
         initializeMagics();
-        std::cout << "Magics Initialized" << std::endl ;
+//        std::cout << "Magics Initialized" << std::endl ;
     }
 
 
@@ -297,7 +297,7 @@ namespace Engine {
                 shift = validateMagic(true, i, randomMagic);
                 magicsTried++;
             }
-            std::cout<< std::to_string(i+1)+ " magics found "+std::to_string(magicsTried)+ " magics tried" << std::endl;
+//            std::cout<< std::to_string(i+1)+ " magics found "+std::to_string(magicsTried)+ " magics tried" << std::endl;
             bishopMagics[i] = magicEntry(shift,randomMagic);
         }
         for (int i = 0; i < 64; ++i) {
@@ -308,7 +308,7 @@ namespace Engine {
                 shift = validateMagic(false, i, randomMagic);
                 magicsTried++;
             }
-            std::cout<< std::to_string(i+65)+ " magics found "+std::to_string(magicsTried)+ " magics tried" << std::endl;
+//            std::cout<< std::to_string(i+65)+ " magics found "+std::to_string(magicsTried)+ " magics tried" << std::endl;
             rookMagics[i] = magicEntry(shift,randomMagic);
         }
     }
