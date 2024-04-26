@@ -6,11 +6,6 @@
 #include "Helper.h"
 
 namespace Engine {
-    bool isSliding(Engine::Piece piece){
-        return 3 <= abs(piece) &&  abs(piece)<= 5;
-    }
-
-
 
     std::string toCoordinates(int index) {
         int row = (index / 8); // Calculate row (rank) from index

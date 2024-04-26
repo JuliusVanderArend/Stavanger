@@ -45,13 +45,14 @@ namespace Engine {
         void debugDraw(std::string mode);
         void loadFromFEN(const std::string& fen);
         void makeMove(Move move);
+        void unMakeMove(Move move);
 
 
 
     private:
         int savedEnPassantTarget = 0;
 
-
+        Piece promotionCodeToPiece(int code);
 
         void addPiece(Piece piece, int x, int y);
         void capturePiece(int from, int to);
@@ -59,6 +60,7 @@ namespace Engine {
         void capturePieceEP(int from, int to);
         void unCapturePieceEP(int from, int to, Piece piece);
         void movePiece(int from, int to);
+        void unMovePiece(int from, int to);
         void capturePiecePromote(int from, int to, int code);
         void movePiecePromote(int from, int to, int code);
 

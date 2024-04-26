@@ -93,8 +93,6 @@ namespace Engine {
         uint8_t to = move & 0x3F;
         uint8_t code = (move & 0xF000) >> 12;
 
-        int toMove = whiteToMove?1:-1;
-
 
         switch (code) { // refactor this later, probably a more elegant and less branchy way of doing it.
             case 0://quiet moves
@@ -157,11 +155,78 @@ namespace Engine {
         friendlyOccupancy = enemyOccupancy;
         enemyOccupancy = temp;
 
+        whiteToMove = !whiteToMove;
+
     }
 
-//    void Position::unmakeMove(Move move){
-//
-//    }
+    void Position::unMakeMove(Move move){
+        uint8_t from = (move & 0xFC0) >> 6;
+        uint8_t to = move & 0x3F;
+        uint8_t code = (move & 0xF000) >> 12;
+
+        enPassantTarget = savedEnPassantTarget;
+
+        Bitboard* temp = friendlyOccupancy; //swap friendly/enemy occupancy ptrs.
+        friendlyOccupancy = enemyOccupancy;
+        enemyOccupancy = temp;
+
+        whiteToMove = !whiteToMove;
+
+
+        switch (code) { // refactor this later, probably a more elegant and less branchy way of doing it.
+            case 0://quiet moves
+                unMovePiece(from,to); //does all the bitboard manipulation need to happen as well? could be put off for better perf?
+                break;
+            case 1: //is double pawn push so set en passant target square
+                unMovePiece(from,to);
+                enPassantTarget = 0;
+                break;
+            case 2: //Kingside
+                unMovePiece(from,to);
+                unMovePiece(whiteToMove?7:63,whiteToMove?5:61); //move rook and unset castling rights
+                if(whiteToMove){
+                    whiteQueensideCastle = true;
+                    whiteKingsideCastle = true;
+                }
+                else{
+                    blackQueensideCastle = true;
+                    blackKingsideCastle = true;
+                }
+                break;
+            case 3: //Queenside castle
+                unMovePiece(from,to);
+                unMovePiece(whiteToMove?0:56,whiteToMove?3:59); //move rook and unset castling rights
+                if(whiteToMove){
+                    whiteQueensideCastle = true;
+                    whiteKingsideCastle = true;
+                }
+                else{
+                    blackQueensideCastle = true;
+                    blackKingsideCastle = true;
+                }
+                break;
+            case 4: //capture
+                unCapturePiece(from,to,Piece((move >> 16)& 0x3F));
+                break;
+            case 5: //enpessant capture
+                unCapturePieceEP(from,to,Piece((move >> 16)& 0x3F));
+                break;
+            case 8: // simple promotions
+            case 9:
+            case 10:
+            case 11:
+//                movePiecePromote(from,to,code);
+                break;
+            case 12: // capture promotions
+            case 13:
+            case 14:
+            case 15:
+//                capturePiecePromote(from,to,code);
+                break;
+            default:
+                break;
+        }
+    }
 
 
     void Position::addPiece(Piece piece, int x, int y) {
@@ -196,7 +261,7 @@ namespace Engine {
         move(*friendlyOccupancy,to,from);
         set(*enemyOccupancy,to);
 
-        set(pieceOccupancy[piece],to); //clear captured piece bit
+        set(pieceOccupancy[piece],to); //set captured piece bit
 
         move(pieceOccupancy[pieceNames[to]],to,from); //move capturing piece bit
 
@@ -206,6 +271,7 @@ namespace Engine {
 
     void Position::capturePieceEP(int from, int to) { //be very careful to get the logic right here, potential to optimise this by storing capture square instead of en passant target
         int captureSquare = enPassantTarget+ (whiteToMove?-8:8);
+
         move(occupancy,from,to); //move occupancy to destination
         move(*friendlyOccupancy,from,to); //move friendly occupancy to destination
         clear(*enemyOccupancy,captureSquare); //clear enemy occupancy in en passant square
@@ -221,17 +287,20 @@ namespace Engine {
     }
 
     void Position::unCapturePieceEP(int from, int to, Engine::Piece piece) {
-        move(occupancy,from,to); //move occupancy to destination
-        move(*friendlyOccupancy,from,to); //move friendly occupancy to destination
-        clear(*enemyOccupancy,enPassantTarget); //clear enemy occupancy in en passant square
+        int captureSquare = enPassantTarget+ (whiteToMove?-8:8);
 
-        clear(pieceOccupancy[pieceNames[enPassantTarget]],enPassantTarget); //clear captured piece bit
+        move(occupancy,to,from); //move occupancy back to origin
+        move(*friendlyOccupancy,to,from); //move friendly occupancy back to origin
+        set(*enemyOccupancy,captureSquare); //reset bit on capture square
+        set(occupancy,captureSquare);
 
-        move(pieceOccupancy[pieceNames[from]],from,to); //move capturing piece bit
+        set(pieceOccupancy[piece],captureSquare); //reset captured piece bit
 
-        pieceNames[to] = pieceNames[from];//update piece names
-        pieceNames[from] = Piece::NONE;
-        pieceNames[enPassantTarget] = Piece::NONE;
+        move(pieceOccupancy[pieceNames[to]],to,from); //move capturing piece bit back to origin
+
+        pieceNames[from] = pieceNames[to];//update piece names
+        pieceNames[to] = Piece::NONE;
+        pieceNames[captureSquare] = piece;
     }
 
     void Position::movePiece(int from, int to) {
@@ -242,25 +311,39 @@ namespace Engine {
         pieceNames[from] = Piece::NONE;
     }
 
-    void Position::movePiecePromote(int from, int to, int code) {
+    void Position::unMovePiece(int from, int to) {
+        move(occupancy,to,from);
+        move(*friendlyOccupancy,to,from);
+        move(pieceOccupancy[pieceNames[to]],to,from);
+        pieceNames[from] = pieceNames[to];
+        pieceNames[to] = Piece::NONE;
+    }
+
+    Piece Position::promotionCodeToPiece(int code){
         Piece promoted = Piece::NONE;
         switch (code) {
             case 8:
-                promoted = whiteToMove? Piece::WHITE_KNIGHT:Piece::BLACK_KNIGHT;
+                promoted = whiteToMove ? Piece::WHITE_KNIGHT : Piece::BLACK_KNIGHT;
                 break;
             case 9:
-                promoted = whiteToMove? Piece::WHITE_BISHOP:Piece::BLACK_BISHOP;
+                promoted = whiteToMove ? Piece::WHITE_BISHOP : Piece::BLACK_BISHOP;
                 break;
             case 10:
-                promoted = whiteToMove? Piece::WHITE_ROOK:Piece::BLACK_ROOK;
+                promoted = whiteToMove ? Piece::WHITE_ROOK : Piece::BLACK_ROOK;
                 break;
             case 11:
-                promoted = whiteToMove? Piece::WHITE_QUEEN:Piece::BLACK_QUEEN;
+                promoted = whiteToMove ? Piece::WHITE_QUEEN : Piece::BLACK_QUEEN;
                 break;
             default:
                 std::cout << "ERROR wrong promotion code" << std::endl;
-        }
 
+        }
+        return promoted;
+    }
+
+
+    void Position::movePiecePromote(int from, int to, int code) {
+        Piece promoted = promotionCodeToPiece(code);
 
         move(occupancy,from,to);
         move(*friendlyOccupancy,from,to);
@@ -273,26 +356,9 @@ namespace Engine {
     }
 
     void Position::capturePiecePromote(int from, int to, int code) {
-        Piece promoted = Piece::NONE;
-        switch (code) {
-            case 8:
-                promoted = whiteToMove? Piece::WHITE_KNIGHT:Piece::BLACK_KNIGHT;
-                break;
-            case 9:
-                promoted = whiteToMove? Piece::WHITE_BISHOP:Piece::BLACK_BISHOP;
-                break;
-            case 10:
-                promoted = whiteToMove? Piece::WHITE_ROOK:Piece::BLACK_ROOK;
-                break;
-            case 11:
-                promoted = whiteToMove? Piece::WHITE_QUEEN:Piece::BLACK_QUEEN;
-                break;
-            default:
-                std::cout << "ERROR wrong promotion code" << std::endl;
-        }
+        Piece promoted = promotionCodeToPiece(code-4);
 
-
-        move(occupancy,from,to);
+        clear(occupancy,from);
         move(*friendlyOccupancy,from,to);
 
         clear(pieceOccupancy[pieceNames[from]],from); //create promoted piece

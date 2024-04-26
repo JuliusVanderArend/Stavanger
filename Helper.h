@@ -10,6 +10,8 @@
 #include <iostream>
 #include <cstdint>
 
+
+
 typedef uint64_t Bitboard;
 //typedef std::bitset<32> Move;
 typedef  uint32_t Move; //faster than uint16??? WHY??!
@@ -30,12 +32,15 @@ namespace Engine {
         BLACK_ROOK = 4,
         NONE = 0
     };
-    bool isSliding(Piece piece);
+
+
     template<std::size_t N>
     std::string toCoordinates(int index);
     int toIndex(const std::string& square);
     void printMove(uint32_t move);
     void drawBitboard(Bitboard bitboard);
+
+
     inline void set(Bitboard& bitboard, uint8_t index) {
         bitboard |= (1ULL << index);
     }
@@ -51,6 +56,7 @@ namespace Engine {
     inline bool test(Bitboard& bitboard, uint8_t square) {
         return bitboard & (1ULL << square);
     }
+
 } // Helper
 
 #endif //UNTITLED_HELPER_H

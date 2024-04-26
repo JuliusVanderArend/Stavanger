@@ -193,8 +193,8 @@ namespace Engine {
         Bitboard promotablePawns = pawns & promotableRank;
         Bitboard unpromotablePawns = pawns & ~promotableRank;
 
-        Bitboard singlePushTargets = unpromotablePawns << upOne &(~position->occupancy);
-        Bitboard doublePushTargets = singlePushTargets << upOne & (~position->occupancy) & doublePushTargetRank;
+        Bitboard singlePushTargets = position->whiteToMove?unpromotablePawns << 8 &(~position->occupancy):unpromotablePawns >> 8 &(~position->occupancy);
+        Bitboard doublePushTargets = position->whiteToMove?singlePushTargets << 8 & (~position->occupancy) & doublePushTargetRank:singlePushTargets >> 8 & (~position->occupancy) & doublePushTargetRank;
 
         while(singlePushTargets){ //single pawn push
             int index = __builtin_ffsll(singlePushTargets)-1;
@@ -239,8 +239,25 @@ namespace Engine {
             }
         }
 
-        Bitboard leftAttack = ((unpromotablePawns & notAFile) << upLeft) & enemies;
-        Bitboard rightAttack = ((unpromotablePawns & notHFile) << upRight) & enemies;
+
+
+        Bitboard leftAttack = unpromotablePawns & notAFile;
+        Bitboard rightAttack = unpromotablePawns & notHFile;
+
+        if(position->whiteToMove){
+            leftAttack = leftAttack << 7;
+            rightAttack = rightAttack << 9;
+        }
+        else{
+            leftAttack = leftAttack >>9;
+            rightAttack = rightAttack >> 7;
+        }
+
+        leftAttack = leftAttack & enemies;
+        rightAttack = rightAttack & enemies;
+
+
+
 
         while (leftAttack){
             int index = __builtin_ffsll(leftAttack)-1;
@@ -364,7 +381,7 @@ namespace Engine {
         enemyRQ |= position->pieceOccupancy[4+enemyToMove];
         enemyBQ |= position->pieceOccupancy[3+enemyToMove];
 
-        Bitboard pawnAttacks = position->whiteToMove? whitePawnAttacks[square] : blackPawnAttacks[square];
+        Bitboard pawnAttacks =!position->whiteToMove? whitePawnAttacks[square] : blackPawnAttacks[square];
 
         return (pawnAttacks & enemyPawns)
                | (knightAttacks[square] & enemyKnights)
@@ -372,6 +389,27 @@ namespace Engine {
                | (rookMagicAttacks[square][(position->occupancy & rookMagicMasks[square]) * rookMagics[square].magic >> (64 - rookMagics[square].indexSize)]  & enemyRQ)
                 ;
     }
+
+//    bool MoveGenerator::squareIsAttacked(int square, Position* position){
+//
+//        int enemyToMove = position->whiteToMove? 6:0;
+//
+//        Bitboard enemyPawns = position->pieceOccupancy[1+enemyToMove];
+//        Bitboard enemyKnights   = position->pieceOccupancy[2+enemyToMove];
+//        Bitboard enemyBQ = 0;
+//        Bitboard enemyRQ = enemyBQ = position->pieceOccupancy[5+enemyToMove];
+//        enemyRQ |= position->pieceOccupancy[4+enemyToMove];
+//        enemyBQ |= position->pieceOccupancy[3+enemyToMove];
+//
+//        Bitboard pawnAttacks = position->whiteToMove? blackPawnAttacks[square] : whitePawnAttacks[square];
+//
+//        return (pawnAttacks & enemyPawns)
+//               | (knightAttacks[square] & enemyKnights)
+//               | (bishopMagicAttacks[square][(position->occupancy & bishopMagicMasks[square]) * bishopMagics[square].magic >> (64 - bishopMagics[square].indexSize)]  & enemyBQ)
+//               | (rookMagicAttacks[square][(position->occupancy & rookMagicMasks[square]) * rookMagics[square].magic >> (64 - rookMagics[square].indexSize)]  & enemyRQ)
+//                ;
+//    }
+
 
 
     std::vector<Move> MoveGenerator::attackMapToMoveset(Bitboard attackMap,Bitboard blockers, uint32_t squareIndex){

@@ -23,6 +23,8 @@ add_library(chess_lib
         Helper.h
         MoveGenerator.cpp
         MoveGenerator.h
+        Engine.cpp
+        Engine.h
 )
 
 add_library(chess::lib ALIAS chess_lib)
