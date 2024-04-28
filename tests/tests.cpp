@@ -90,11 +90,11 @@ TEST_F(MoveGenerator, generateMovesCPWPos5){
 TEST_F(MoveGenerator, squareIsChecked){
     Engine::Position pos("r1bqk1nr/pppp1ppp/2n5/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4"); //Symmetrical Italian 3 ply deep
 
-    EXPECT_TRUE(gen->squareIsAttacked(60,&pos));
+    EXPECT_FALSE(gen->squareIsAttacked(60,&pos));
 
     pos.loadFromFEN("rnbqkbnr/pppp2pp/5p2/4p2Q/4P3/3P4/PPP2PPP/RNB1KBNR w KQkq - 1 3"); //illegal position to trip check detection
 
-    EXPECT_FALSE(gen->squareIsAttacked(60,&pos));
+    EXPECT_TRUE(gen->squareIsAttacked(60,&pos));
 }
 
 
@@ -171,6 +171,17 @@ TEST(Position, makeMovePromoteCapture){
     expectPositionsEqual(beforeMove,afterMove);
 }
 
+TEST(Position, makeMoveDoublePP){
+    Engine::Position beforeMove("rnbqkbnr/ppp1pppp/3p4/3P4/8/8/PPP1PPPP/RNBQKBNR b KQkq - 0 2"); //d4d6d5
+    Engine::Position afterMove("rnbqkbnr/ppp2ppp/3p4/3Pp3/8/8/PPP1PPPP/RNBQKBNR w KQkq e6 0 3"); //after e5
+
+    Move move = 36 | (52<<6) | (1 << 12); //move e5
+
+    beforeMove.makeMove(move);
+
+    expectPositionsEqual(beforeMove,afterMove);
+}
+
 // Unmake Move Tests
 
 TEST(Position, unMakeMoveQuiet){
@@ -235,19 +246,27 @@ TEST(Position, unMakeMoveQueensideCastle){
     expectPositionsEqual(beforeMove,afterMove);
 }
 
+TEST(Position, unMakeMoveDoublePP){
+    Engine::Position beforeMove("rnbqkbnr/ppp1pppp/3p4/3P4/8/8/PPP1PPPP/RNBQKBNR b KQkq - 0 2"); //d4d6d5
+    Engine::Position afterMove("rnbqkbnr/ppp1pppp/3p4/3P4/8/8/PPP1PPPP/RNBQKBNR b KQkq - 0 2"); //d4d6d5
+
+    Move move = 36 | (52<<6) | (1 << 12); //move e5
+
+    beforeMove.makeMove(move);
+    beforeMove.unMakeMove(move);
+
+    expectPositionsEqual(beforeMove,afterMove);
+}
+
 //integration
 
-TEST(Perft, startingPositionPerft2){
+TEST(Perft, startingPositionPerft6){
     Engine::MoveGenerator gen;
     Engine::Position pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"); //starting position
 
-//    std::vector<Move> moves = gen.generateMoves(&pos);
-//    for (const auto& move : moves){
-//        Engine::printMove(move);
-//    }
     auto start = std::chrono::high_resolution_clock::now();
 
-    EXPECT_EQ(perftVerbose(&pos,&gen,1),400  );
+    EXPECT_EQ(perft(pos,&gen,5),119060324);
 
     auto end = std::chrono::high_resolution_clock::now();
 

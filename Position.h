@@ -9,26 +9,32 @@
 #include <cstdint>
 #include <array>
 #include <vector>
+#include <stack>
 #include "Helper.h"
 
 
-
 namespace Engine {
+
+    struct irreversibleAspect{
+        bool whiteKingsideCastle;
+        bool whiteQueensideCastle;
+        bool blackKingsideCastle;
+        bool blackQueensideCastle;
+
+        int enPassantTarget = 0;
+    };
 
     class Position {
     public:
         Position(std::string fen);
 
-
-
-        bool whiteKingsideCastle = true; //remember to make this true again
+        bool whiteKingsideCastle = true;
         bool whiteQueensideCastle = true;
         bool blackKingsideCastle = true;
         bool blackQueensideCastle = true;
 
         int enPassantTarget = 0;
         bool whiteToMove = true;
-        int numPieces = 0; //get rid of this at some point
 
         std::array<Bitboard,13> pieceOccupancy;
 
@@ -39,18 +45,16 @@ namespace Engine {
         Bitboard* friendlyOccupancy = &whiteOccupancy; // does this work? remember to change when make move
         Bitboard* enemyOccupancy = &blackOccupancy;
 
-
-
         void draw();
         void debugDraw(std::string mode);
         void loadFromFEN(const std::string& fen);
         void makeMove(Move move);
         void unMakeMove(Move move);
 
-
+        bool equals(const Position& position);
 
     private:
-        int savedEnPassantTarget = 0;
+        std::stack<irreversibleAspect> irreversibleAspectStack;
 
         Piece promotionCodeToPiece(int code);
 

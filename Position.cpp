@@ -93,10 +93,13 @@ namespace Engine {
         uint8_t to = move & 0x3F;
         uint8_t code = (move & 0xF000) >> 12;
 
+        irreversibleAspectStack.push(irreversibleAspect(whiteKingsideCastle,whiteQueensideCastle,blackKingsideCastle,blackQueensideCastle,enPassantTarget));
+
 
         switch (code) { // refactor this later, probably a more elegant and less branchy way of doing it.
             case 0://quiet moves
                 movePiece(from,to); //does all the bitboard manipulation need to happen as well? could be put off for better perf?
+                enPassantTarget = 0;
                 break;
             case 1: //is double pawn push so set en passant target square
                 movePiece(from,to);
@@ -113,6 +116,7 @@ namespace Engine {
                     blackQueensideCastle = false;
                     blackKingsideCastle = false;
                 }
+                enPassantTarget = 0;
                 break;
             case 3: //Queenside castle
                 movePiece(from,to);
@@ -125,31 +129,35 @@ namespace Engine {
                     blackQueensideCastle = false;
                     blackKingsideCastle = false;
                 }
+                enPassantTarget = 0;
                 break;
             case 4: //capture
                 capturePiece(from,to);
+                enPassantTarget = 0;
                 break;
             case 5: //enpessant capture
                 capturePieceEP(from,to);
+                enPassantTarget = 0;
                 break;
             case 8: // simple promotions
             case 9:
             case 10:
             case 11:
                 movePiecePromote(from,to,code);
+                enPassantTarget = 0;
                 break;
             case 12: // capture promotions
             case 13:
             case 14:
             case 15:
                 capturePiecePromote(from,to,code);
+                enPassantTarget = 0;
                 break;
             default:
                 break;
         }
 
-        savedEnPassantTarget = enPassantTarget;
-        enPassantTarget = 0; //how do deal with resetting eptarget when unmaking moves recursively?
+
 
         Bitboard* temp = friendlyOccupancy; //swap friendly/enemy occupancy ptrs.
         friendlyOccupancy = enemyOccupancy;
@@ -164,7 +172,14 @@ namespace Engine {
         uint8_t to = move & 0x3F;
         uint8_t code = (move & 0xF000) >> 12;
 
-        enPassantTarget = savedEnPassantTarget;
+        irreversibleAspect oldPositionInfo = irreversibleAspectStack.top(); //restore un inferable aspects of the old position
+        irreversibleAspectStack.pop();
+        whiteKingsideCastle = oldPositionInfo.whiteKingsideCastle;
+        whiteQueensideCastle = oldPositionInfo.whiteQueensideCastle;
+        blackKingsideCastle = oldPositionInfo.blackKingsideCastle;
+        blackQueensideCastle = oldPositionInfo.blackQueensideCastle;
+        enPassantTarget = oldPositionInfo.enPassantTarget;
+
 
         Bitboard* temp = friendlyOccupancy; //swap friendly/enemy occupancy ptrs.
         friendlyOccupancy = enemyOccupancy;
@@ -179,31 +194,14 @@ namespace Engine {
                 break;
             case 1: //is double pawn push so set en passant target square
                 unMovePiece(from,to);
-                enPassantTarget = 0;
                 break;
             case 2: //Kingside
                 unMovePiece(from,to);
                 unMovePiece(whiteToMove?7:63,whiteToMove?5:61); //move rook and unset castling rights
-                if(whiteToMove){
-                    whiteQueensideCastle = true;
-                    whiteKingsideCastle = true;
-                }
-                else{
-                    blackQueensideCastle = true;
-                    blackKingsideCastle = true;
-                }
                 break;
             case 3: //Queenside castle
                 unMovePiece(from,to);
                 unMovePiece(whiteToMove?0:56,whiteToMove?3:59); //move rook and unset castling rights
-                if(whiteToMove){
-                    whiteQueensideCastle = true;
-                    whiteKingsideCastle = true;
-                }
-                else{
-                    blackQueensideCastle = true;
-                    blackKingsideCastle = true;
-                }
                 break;
             case 4: //capture
                 unCapturePiece(from,to,Piece((move >> 16)& 0x3F));
@@ -270,7 +268,7 @@ namespace Engine {
     }
 
     void Position::capturePieceEP(int from, int to) { //be very careful to get the logic right here, potential to optimise this by storing capture square instead of en passant target
-        int captureSquare = enPassantTarget+ (whiteToMove?-8:8);
+        int captureSquare = enPassantTarget+ (whiteToMove?-8:8); //the square of the pawn being EP captured
 
         move(occupancy,from,to); //move occupancy to destination
         move(*friendlyOccupancy,from,to); //move friendly occupancy to destination
@@ -304,6 +302,7 @@ namespace Engine {
     }
 
     void Position::movePiece(int from, int to) {
+//        std::cout <<&blackOccupancy<<std::endl;
         move(occupancy,from,to);
         move(*friendlyOccupancy,from,to);
         move(pieceOccupancy[pieceNames[from]],from,to);
@@ -383,6 +382,68 @@ namespace Engine {
         if(mode == "black") {
             drawBitboard(blackOccupancy);
         }
+    }
+
+    bool Position::equals(const Engine::Position &position) {
+        bool equals = true;
+
+        if(whiteKingsideCastle != position.whiteKingsideCastle){
+            std::cout << "white kingside castle: " + std::to_string(whiteKingsideCastle) + " vs " + std::to_string(position.whiteKingsideCastle) <<std::endl;
+            equals = false;
+        }
+        if(whiteQueensideCastle != position.whiteQueensideCastle){
+            std::cout << "white queenside castle: " + std::to_string(whiteQueensideCastle) + " vs " + std::to_string(position.whiteQueensideCastle) <<std::endl;
+            equals = false;
+        }
+        if(blackKingsideCastle != position.blackKingsideCastle){
+            std::cout << "black kingside castle: " + std::to_string(blackKingsideCastle) + " vs " + std::to_string(position.blackKingsideCastle) <<std::endl;
+            equals = false;
+        }
+        if(blackQueensideCastle != position.blackQueensideCastle){
+            std::cout << "black queenside castle: " + std::to_string(blackQueensideCastle) + " vs " + std::to_string(position.blackQueensideCastle) <<std::endl;
+            equals = false;
+        }
+
+        if(enPassantTarget != position.enPassantTarget){
+            std::cout << "en passant target: " + std::to_string(enPassantTarget) + " vs " + std::to_string(position.enPassantTarget) <<std::endl;
+            equals = false;
+        }
+
+        if(occupancy != position.occupancy){
+            std::cout << "occupancy: " + std::to_string(occupancy) + " vs " + std::to_string(position.occupancy) <<std::endl;
+            equals = false;
+        }
+        if(whiteOccupancy != position.whiteOccupancy){
+            std::cout << "white occupancy: " + std::to_string(whiteOccupancy) + " vs " + std::to_string(position.whiteOccupancy) <<std::endl;
+            equals = false;
+        }
+        if(blackOccupancy != position.blackOccupancy){
+            std::cout << "black occupancy: " + std::to_string(blackOccupancy) + " vs " + std::to_string(position.blackOccupancy) <<std::endl;
+            equals = false;
+        }
+        if(*friendlyOccupancy != *position.friendlyOccupancy){
+            std::cout << "friendly occupancy: " + std::to_string(*friendlyOccupancy) + " vs " + std::to_string(*position.friendlyOccupancy) <<std::endl;
+            equals = false;
+        }
+        if(*enemyOccupancy != *position.enemyOccupancy){
+            std::cout << "enemy occupancy: " + std::to_string(*enemyOccupancy) + " vs " + std::to_string(*position.enemyOccupancy) <<std::endl;
+            equals = false;
+        }
+
+        for (int i = 0; i < 64; ++i) {
+            if(pieceNames[i] != position.pieceNames[i]){
+                std::cout << "piece names ("+std::to_string(i)+") :" + std::to_string(pieceNames[i]) + " vs " + std::to_string(position.pieceNames[i]) <<std::endl;
+                equals = false;
+            }
+        }
+        for (int i = 0; i < 13; ++i) {
+            if(pieceOccupancy[i] != position.pieceOccupancy[i]){
+                std::cout << "piece occupancy ("+std::to_string(i)+") :" + std::to_string(pieceOccupancy[i]) + " vs " + std::to_string(position.pieceOccupancy[i]) <<std::endl;
+                equals = false;
+            }
+        }
+
+        return equals;
     }
 
     void Position::draw(){

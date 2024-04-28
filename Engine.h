@@ -8,8 +8,8 @@
 #include "MoveGenerator.h"
 #include "Position.h"
 namespace Engine {
-    int perft(Position* position,MoveGenerator* gen, int depth);
-    int perftVerbose(Position* position,MoveGenerator* gen, int depth);
+    int perft(Position& position,MoveGenerator* gen, int depth);
+    int perftVerbose(Position& position,MoveGenerator* gen, int depth);
 }
 
 

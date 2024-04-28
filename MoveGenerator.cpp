@@ -23,6 +23,8 @@ namespace Engine {
     }
 
 
+
+
     std::vector<Move> MoveGenerator::generateMoves(Position* position){
         std::vector<Move> generatedMoves; //218 maximum moves from any given position
         generatedMoves.reserve(218);
@@ -239,8 +241,6 @@ namespace Engine {
             }
         }
 
-
-
         Bitboard leftAttack = unpromotablePawns & notAFile;
         Bitboard rightAttack = unpromotablePawns & notHFile;
 
@@ -256,9 +256,6 @@ namespace Engine {
         leftAttack = leftAttack & enemies;
         rightAttack = rightAttack & enemies;
 
-
-
-
         while (leftAttack){
             int index = __builtin_ffsll(leftAttack)-1;
             moves.emplace_back(index | (index-upLeft)<<6 | (4 << 12) | (position->pieceNames[index] << 16));
@@ -270,26 +267,26 @@ namespace Engine {
             rightAttack &= ~(1ULL << index);
         }
 
-        int leftEP = position->whiteToMove? -9:9;
-        int rightEP = position->whiteToMove? -7:7;
+        int leftEP = position->whiteToMove? -7:9;
+        int rightEP = position->whiteToMove? -9:7;
 
         if(position->enPassantTarget !=0){
             if(position->enPassantTarget % 8 == 0){
-                if((1ULL <<(position->enPassantTarget +leftEP)) & unpromotablePawns){
-                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +leftEP)<<6 | (5 << 12)  | (position->pieceNames[position->enPassantTarget] << 16) );
+                if((1ULL <<(position->enPassantTarget +leftEP)) & unpromotablePawns & notHFile){
+                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +leftEP)<<6 | (5 << 12)  | ((position->whiteToMove?Piece::BLACK_PAWN:Piece::WHITE_PAWN) << 16) ); //better than ep target - upone? must bench
                 }
             }
             else if(position->enPassantTarget % 8 == 7){
-                if((1ULL <<(position->enPassantTarget +rightEP)) & unpromotablePawns){
-                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +rightEP)<<6 | (5 << 12)| (position->pieceNames[position->enPassantTarget] << 16));
+                if((1ULL <<(position->enPassantTarget +rightEP)) & unpromotablePawns & notAFile){
+                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +rightEP)<<6 | (5 << 12)| ((position->whiteToMove?Piece::BLACK_PAWN:Piece::WHITE_PAWN) << 16));
                 }
             }
             else{
                 if((1ULL <<(position->enPassantTarget +leftEP)) & unpromotablePawns){
-                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +leftEP)<<6 | (5 << 12)| (position->pieceNames[position->enPassantTarget] << 16));
+                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +leftEP)<<6 | (5 << 12)| ((position->whiteToMove?Piece::BLACK_PAWN:Piece::WHITE_PAWN) << 16));
                 }
                 if((1ULL <<(position->enPassantTarget +rightEP)) & unpromotablePawns){
-                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +rightEP)<<6 | (5 << 12)| (position->pieceNames[position->enPassantTarget] << 16));
+                    moves.emplace_back(position->enPassantTarget | (position->enPassantTarget +rightEP)<<6 | (5 << 12)| ((position->whiteToMove?Piece::BLACK_PAWN:Piece::WHITE_PAWN) << 16));
                 }
             }
         }
@@ -370,18 +367,20 @@ namespace Engine {
         return -1;
     }
 
-    bool MoveGenerator::squareIsAttacked(int square, Position* position){
 
-        int enemyToMove = position->whiteToMove? 0:6;
+    bool MoveGenerator::squareIsAttacked(int square, Position* position){ //this method is used to check if the king is checked after attempting to make a move
+        //Therefore if it is white's move, after attempting a move, position.whiteToMove will be false, so in this case we consider blacks pieces to be enemy pieces and vice versa.
+
+        int enemyToMove = position->whiteToMove? 6:0;
 
         Bitboard enemyPawns = position->pieceOccupancy[1+enemyToMove];
-        Bitboard enemyKnights   = position->pieceOccupancy[2+enemyToMove];
+        Bitboard enemyKnights = position->pieceOccupancy[2+enemyToMove];
         Bitboard enemyBQ = 0;
         Bitboard enemyRQ = enemyBQ = position->pieceOccupancy[5+enemyToMove];
         enemyRQ |= position->pieceOccupancy[4+enemyToMove];
         enemyBQ |= position->pieceOccupancy[3+enemyToMove];
 
-        Bitboard pawnAttacks =!position->whiteToMove? whitePawnAttacks[square] : blackPawnAttacks[square];
+        Bitboard pawnAttacks = position->whiteToMove? blackPawnAttacks[square] : whitePawnAttacks[square];
 
         return (pawnAttacks & enemyPawns)
                | (knightAttacks[square] & enemyKnights)
@@ -389,26 +388,6 @@ namespace Engine {
                | (rookMagicAttacks[square][(position->occupancy & rookMagicMasks[square]) * rookMagics[square].magic >> (64 - rookMagics[square].indexSize)]  & enemyRQ)
                 ;
     }
-
-//    bool MoveGenerator::squareIsAttacked(int square, Position* position){
-//
-//        int enemyToMove = position->whiteToMove? 6:0;
-//
-//        Bitboard enemyPawns = position->pieceOccupancy[1+enemyToMove];
-//        Bitboard enemyKnights   = position->pieceOccupancy[2+enemyToMove];
-//        Bitboard enemyBQ = 0;
-//        Bitboard enemyRQ = enemyBQ = position->pieceOccupancy[5+enemyToMove];
-//        enemyRQ |= position->pieceOccupancy[4+enemyToMove];
-//        enemyBQ |= position->pieceOccupancy[3+enemyToMove];
-//
-//        Bitboard pawnAttacks = position->whiteToMove? blackPawnAttacks[square] : whitePawnAttacks[square];
-//
-//        return (pawnAttacks & enemyPawns)
-//               | (knightAttacks[square] & enemyKnights)
-//               | (bishopMagicAttacks[square][(position->occupancy & bishopMagicMasks[square]) * bishopMagics[square].magic >> (64 - bishopMagics[square].indexSize)]  & enemyBQ)
-//               | (rookMagicAttacks[square][(position->occupancy & rookMagicMasks[square]) * rookMagics[square].magic >> (64 - rookMagics[square].indexSize)]  & enemyRQ)
-//                ;
-//    }
 
 
 

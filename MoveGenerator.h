@@ -28,6 +28,10 @@ namespace Engine {
     private:
         static const int MAX_MAGIC_BITS = 15;
 
+//        inline void addMove(const std::vector<Move>& moves,const Position& position, uint8_t from, uint8_t to, uint8_t code, uint8_t capture = 0){
+//            moves.emplace_back(to | (from<<6) | (code << 12) | (capture << 16));
+//        }
+
         static Bitboard generateMagicMaskRay(int direction, int squareIndex);
         static Bitboard generateRookMagicMask(int squareIndex);
         static Bitboard generateBishopMagicMask(int squareIndex);
