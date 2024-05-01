@@ -213,13 +213,13 @@ namespace Engine {
             case 9:
             case 10:
             case 11:
-//                movePiecePromote(from,to,code);
+                unMovePiecePromote(from,to,code);
                 break;
             case 12: // capture promotions
             case 13:
             case 14:
             case 15:
-//                capturePiecePromote(from,to,code);
+                unCapturePiecePromote(from,to,code,Piece((move >> 16)& 0x3F));
                 break;
             default:
                 break;
@@ -333,6 +333,18 @@ namespace Engine {
             case 11:
                 promoted = whiteToMove ? Piece::WHITE_QUEEN : Piece::BLACK_QUEEN;
                 break;
+            case 12:
+                promoted = whiteToMove ? Piece::WHITE_KNIGHT : Piece::BLACK_KNIGHT;
+                break;
+            case 13:
+                promoted = whiteToMove ? Piece::WHITE_BISHOP : Piece::BLACK_BISHOP;
+                break;
+            case 14:
+                promoted = whiteToMove ? Piece::WHITE_ROOK : Piece::BLACK_ROOK;
+                break;
+            case 15:
+                promoted = whiteToMove ? Piece::WHITE_QUEEN : Piece::BLACK_QUEEN;
+                break;
             default:
                 std::cout << "ERROR wrong promotion code" << std::endl;
 
@@ -347,11 +359,25 @@ namespace Engine {
         move(occupancy,from,to);
         move(*friendlyOccupancy,from,to);
 
-        clear(pieceOccupancy[pieceNames[from]],from); //create promoted piece
+        clear(pieceOccupancy[pieceNames[from]],from); //create promoted piece (is it faster to be looking up the pawn from peicenames or just using a branch on whitetomove to do it?
         set(pieceOccupancy[promoted],to);
 
         pieceNames[to] = promoted;//maybe I don't have to do this?
         pieceNames[from] = Piece::NONE;
+    }
+
+    void Position::unMovePiecePromote(int from, int to,int code){
+        Piece pawn = whiteToMove?Piece::WHITE_PAWN:Piece::BLACK_PAWN;
+        Piece promoted = promotionCodeToPiece(code);
+
+        move(occupancy,to,from);
+        move(*friendlyOccupancy,to,from);
+
+        set(pieceOccupancy[pawn],from);
+        clear(pieceOccupancy[promoted],to);
+
+        pieceNames[to] = Piece::NONE;
+        pieceNames[from] = pawn;
     }
 
     void Position::capturePiecePromote(int from, int to, int code) {
@@ -369,6 +395,24 @@ namespace Engine {
         pieceNames[to] = promoted;//maybe I don't have to do this?
         pieceNames[from] = Piece::NONE;
     }
+
+    void Position::unCapturePiecePromote(int from, int to,int code, Engine::Piece captured){
+        Piece pawn = whiteToMove?Piece::WHITE_PAWN:Piece::BLACK_PAWN;
+        Piece promoted = promotionCodeToPiece(code);
+
+        set(occupancy,from);
+        move(*friendlyOccupancy,to,from);
+        set(*enemyOccupancy,to);
+
+        set(pieceOccupancy[pawn],from);
+        set(pieceOccupancy[captured],to);
+        clear(pieceOccupancy[promoted],to);
+
+        pieceNames[to] = captured;
+        pieceNames[from] = pawn;
+    }
+
+
 
 
 

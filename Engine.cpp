@@ -20,6 +20,7 @@ namespace Engine {
         Move best = 0;
         float bestEval = std::numeric_limits<float>::lowest();
 
+        Position save = pos;
         for (const auto& move : moves) {
             pos.makeMove(move);
 
@@ -33,6 +34,7 @@ namespace Engine {
             pos.unMakeMove(move);
 
         }
+        pos = save;
         return best;
     }
 
@@ -110,42 +112,32 @@ namespace Engine {
     }
 
     int perft(Position& position,MoveGenerator* gen, int depth,int& nodes){
-//        if(depth == 0 && nodes == 117661){
-//            std::cout <<"ERR"<<std::endl;
-//        }
         std::vector<Move> moves = gen->generateMoves(&position);
         int count = 0;
-        nodes++;
+//        nodes++;
 
 
 
         if(depth==0){
 //            return moves.size();
             for (const auto& move : moves) {
-                Position before = position;
                 position.makeMove(move);
                 if(!gen->squareIsAttacked(__builtin_ffsll(position.pieceOccupancy[6+(position.whiteToMove?0:6)])-1,&position)){ //king must not be in check REMEBER TO SWAP 0 AND 6
                     count += 1;
                 }
                 position.unMakeMove(move);
 
-                if(!position.equals(before)){
-                    std::cout <<"ERR"<<std::endl;
-                }
+
             }
             return count;
         }
 
         for (const auto& move : moves) {
-            Position before = position;
             position.makeMove(move);
             if(!gen->squareIsAttacked(__builtin_ffsll(position.pieceOccupancy[6+(position.whiteToMove?0:6)])-1,&position)){ //king must not be in check
                 count += perft(position,gen,depth-1,nodes);
             }
             position.unMakeMove(move);
-            if(!position.equals(before)){
-                std::cout <<"ERR"<<std::endl;
-            }
         }
         return count;
     }

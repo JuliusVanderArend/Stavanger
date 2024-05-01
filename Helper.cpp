@@ -25,6 +25,46 @@ namespace Engine {
         return rank * 8 + file; // Calculate the board index
     }
 
+    std::tuple<int, int, int> toMove(const std::string& moveString){
+//        if(moveString == "O-O"){
+//            return 6 | (4 << 6) |
+//        }
+//        if(moveString == "o-o"){
+//
+//        }
+//        if(moveString == "O-O-O"){
+//
+//        }
+//        if(moveString == "o-o-o"){
+//
+//        }
+
+
+        int from =  ((moveString[0] - 'a') + ((moveString[1] - '1') * 8));
+        int to = (moveString[2] - 'a') + ((moveString[3] - '1') * 8);
+        int promotion = 0;
+
+        if (moveString.length() == 5) {
+            switch (moveString[4]) {
+                case 'n':
+                    promotion = 8; // Knight
+                    break;
+                case 'b':
+                    promotion = 9; // Bishop
+                    break;
+                case 'r':
+                    promotion = 10; // Rook
+                    break;
+                case 'q':
+                    promotion = 11; // Queen
+                    break;
+                default:
+                    break;
+            }
+        }
+        return  std::make_tuple(from, to, promotion);
+    }
+
     void drawBitboard(Bitboard bitboard) {
         std::cout << "=======================" <<std::endl;
         for (int i = 7; i >= 0; --i) {
