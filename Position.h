@@ -53,6 +53,24 @@ namespace Engine {
 
         bool equals(const Position& position);
 
+        Position(const Position& other){
+            whiteKingsideCastle = other.whiteKingsideCastle;
+            whiteQueensideCastle = other.whiteQueensideCastle;
+            blackKingsideCastle = other.blackKingsideCastle;
+            blackQueensideCastle = other.blackQueensideCastle;
+            enPassantTarget = other.enPassantTarget;
+            whiteToMove = other.whiteToMove;
+            pieceOccupancy = other.pieceOccupancy;
+            pieceNames = other.pieceNames;
+            occupancy = other.occupancy;
+            whiteOccupancy = other.whiteOccupancy;
+            blackOccupancy = other.blackOccupancy;
+            pieceOccupancy = other.pieceOccupancy;
+            pieceNames = other.pieceNames;
+            friendlyOccupancy = whiteToMove ? &whiteOccupancy : &blackOccupancy;
+            enemyOccupancy = whiteToMove ? &blackOccupancy : &whiteOccupancy;
+        }
+
     private:
         std::stack<irreversibleAspect> irreversibleAspectStack;
 
@@ -66,7 +84,9 @@ namespace Engine {
         void movePiece(int from, int to);
         void unMovePiece(int from, int to);
         void capturePiecePromote(int from, int to, int code);
+        void unCapturePiecePromote(int from, int to,int code, Engine::Piece captured);
         void movePiecePromote(int from, int to, int code);
+        void unMovePiecePromote(int from, int to, int code);
 
     };
 

@@ -7,6 +7,8 @@
 #include "Position.h"
 #include "MoveGenerator.h"
 #include "Helper.h"
+#include "Engine.h"
+
 
 using namespace Engine;
 
@@ -15,31 +17,38 @@ int main() {
     std::cout << "Hello, World!" << std::endl;
 
     Position pos("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-//    pos->whiteToMove = false;
-//    pos->debugDraw("occupancy");
-//    pos->debugDraw("white");
-//    pos->debugDraw("black");
-
-    std::vector<Move> generatedMoves;
     MoveGenerator moveGen;
 
+    Stavanger engine(pos,moveGen);
 
-    auto start = std::chrono::high_resolution_clock::now();
-    for (int i = 0; i < 1000000; ++i) {
-       generatedMoves =  moveGen.generateMoves(&pos);
+    while(true){
+        engine.pos.draw();
+
+        std::cout << "Enter your move : ";
+        std::string input;
+        std::cin >> input;
+
+        auto tryMove = toMove(input);
+
+        std::vector<Move> moves = moveGen.generateMoves(&engine.pos);
+
+        for(const auto& move : moves){
+            printMove(move);
+            if(((move >> 6) & 0x3f) ==  std::get<0>(tryMove) && (move & 0x3f) == std::get<1>(tryMove) ){//broken promo
+                engine.makeMove(move);
+                std::cout<< "+++++++++++" <<std::endl;
+                printMove(move);
+                break;
+            }
+        }
+
+        Move response = engine.bestMove();
+        std::cout<< "+++++++++++" <<std::endl;
+        printMove(response);
+        engine.makeMove(response);
     }
-    auto end = std::chrono::high_resolution_clock::now();
 
-    // Calculate the duration
-    std::chrono::duration<double> duration = end - start;
-    std::cout << "Time taken: " << duration.count() << " seconds" << std::endl;
 
-    pos.draw();
-    generatedMoves =  moveGen.generateMoves(&pos);
-    std::cout << generatedMoves.size() << std::endl;
-    for(Move move : generatedMoves){
-        printMove(move);
-    }
 //    pos->makeMove(generatedMoves[0]);
 //    pos->draw();
 

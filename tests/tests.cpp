@@ -258,6 +258,19 @@ TEST(Position, unMakeMoveDoublePP){
     expectPositionsEqual(beforeMove,afterMove);
 }
 
+
+TEST(Position, unMakeMovePromote){
+    Engine::Position beforeMove("3r4/1PPPPPQ1/8/5P1k/1K1n4/3p2b1/1pp1ppp1/3B4 w - - 0 1"); //composed to test promotion
+    Engine::Position afterMove("3r4/1PPPPPQ1/8/5P1k/1K1n4/3p2b1/1pp1ppp1/3B4 w - - 0 1");
+
+    Move move = 58 | (50<<6) | (11<< 12); //move c8=Q
+
+    beforeMove.makeMove(move);
+    beforeMove.unMakeMove(move);
+
+    expectPositionsEqual(beforeMove,afterMove);
+}
+
 //integration
 
 TEST(Perft, startingPositionPerft6){
@@ -266,7 +279,7 @@ TEST(Perft, startingPositionPerft6){
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    EXPECT_EQ(perft(pos,&gen,5),119060324);
+    EXPECT_EQ(perftVerbose(pos,&gen,5),119060324);
 
     auto end = std::chrono::high_resolution_clock::now();
 
@@ -274,4 +287,6 @@ TEST(Perft, startingPositionPerft6){
     std::chrono::duration<double> duration = end - start;
     std::cout << "Time taken: " << duration.count() << " seconds" << std::endl;
 }
+
+
 
