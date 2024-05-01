@@ -37,7 +37,6 @@ namespace Engine {
     template<std::size_t N>
     std::string toCoordinates(int index);
     int toIndex(const std::string& square);
-    std::tuple<int, int, int> toMove(const std::string& move);
     void printMove(uint32_t move);
     void drawBitboard(Bitboard bitboard);
 

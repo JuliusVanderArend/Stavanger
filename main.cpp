@@ -28,19 +28,6 @@ int main() {
         std::string input;
         std::cin >> input;
 
-        auto tryMove = toMove(input);
-
-        std::vector<Move> moves = moveGen.generateMoves(&engine.pos);
-
-        for(const auto& move : moves){
-            printMove(move);
-            if(((move >> 6) & 0x3f) ==  std::get<0>(tryMove) && (move & 0x3f) == std::get<1>(tryMove) ){//broken promo
-                engine.makeMove(move);
-                std::cout<< "+++++++++++" <<std::endl;
-                printMove(move);
-                break;
-            }
-        }
 
         Move response = engine.bestMove();
         std::cout<< "+++++++++++" <<std::endl;

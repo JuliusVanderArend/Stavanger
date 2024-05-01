@@ -19,7 +19,6 @@ namespace Engine {
         }
 
         initializeMagics();
-//        std::cout << "Magics Initialized" << std::endl ;
     }
 
 
@@ -311,7 +310,6 @@ namespace Engine {
                 shift = validateMagic(true, i, randomMagic);
                 magicsTried++;
             }
-//            std::cout<< std::to_string(i+1)+ " magics found "+std::to_string(magicsTried)+ " magics tried" << std::endl;
             bishopMagics[i] = magicEntry(shift,randomMagic);
         }
         for (int i = 0; i < 64; ++i) {
@@ -322,7 +320,6 @@ namespace Engine {
                 shift = validateMagic(false, i, randomMagic);
                 magicsTried++;
             }
-//            std::cout<< std::to_string(i+65)+ " magics found "+std::to_string(magicsTried)+ " magics tried" << std::endl;
             rookMagics[i] = magicEntry(shift,randomMagic);
         }
     }
@@ -335,7 +332,6 @@ namespace Engine {
         generateAllBlockerConfigs(blockerConfigs,mask);
 
         std::array<Bitboard, 1 << MAX_MAGIC_BITS>* attackTable = isBishop ? &bishopMagicAttacks[squareIndex] : &rookMagicAttacks[squareIndex];
-        std::array<std::vector<Move>,1 << MAX_MAGIC_BITS>* movesetTable = isBishop ? &bishopMagicMovesets[squareIndex] : &rookMagicMovesets[squareIndex];
 
         while (shift < MAX_MAGIC_BITS){
 
@@ -346,12 +342,11 @@ namespace Engine {
 
             for (int i = 0; i < (1 << std::popcount(mask)); ++i) {
 
-                uint64_t index = blockerConfigs[i] * magic >> (64-shift); // what happens when own piece square is included in blockers?
+                uint64_t index = blockerConfigs[i] * magic >> (64-shift);
                 Bitboard attack = isBishop ? floodfillBishopAttacks(squareIndex, blockerConfigs[i]) : floodfillRookAttacks(squareIndex, blockerConfigs[i]);
 
                 if((*attackTable)[index] == 0){
                     (*attackTable)[index] = attack;
-//                    (*movesetTable)[index] = attackMapToMoveset(attack, blockerConfigs[i],squareIndex);
                 }
                 else if((*attackTable)[index] != attack){ //collision
                     shift++;
